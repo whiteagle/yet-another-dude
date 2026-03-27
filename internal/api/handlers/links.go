@@ -28,7 +28,7 @@ type CreateLinkRequest struct {
 func (h *LinkHandler) List(c *gin.Context) {
 	links, err := h.database.ListLinks(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "", err)
 		return
 	}
 	if links == nil {
@@ -60,7 +60,7 @@ func (h *LinkHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.database.CreateLink(c.Request.Context(), link); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "", err)
 		return
 	}
 	c.JSON(http.StatusCreated, link)
@@ -69,7 +69,7 @@ func (h *LinkHandler) Create(c *gin.Context) {
 func (h *LinkHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	if err := h.database.DeleteLink(c.Request.Context(), id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "", err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"deleted": id})

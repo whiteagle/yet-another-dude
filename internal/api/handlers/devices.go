@@ -2,6 +2,8 @@
 package handlers
 
 import (
+	"errors"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -23,37 +25,36 @@ func NewDeviceHandler(database *db.DB) *DeviceHandler {
 
 // CreateDeviceRequest is the request body for creating a device.
 type CreateDeviceRequest struct {
-	Name          string  `json:"name" binding:"required"`
-	IP            string  `json:"ip" binding:"required"`
-	MAC           string  `json:"mac"`
-	Type          string  `json:"type"`
-	SNMPCommunity string  `json:"snmp_community"`
-	SNMPVersion   int     `json:"snmp_version"`
-	Username      string  `json:"username"`
-	Password      string  `json:"password"`
-	IsRouterOS    bool    `json:"is_routeros"`
-	Notes         string  `json:"notes"`
+	Name          string `json:"name"  binding:"required,max=128"`
+	IP            string `json:"ip"    binding:"required"`
+	MAC           string `json:"mac"`
+	Type          string `json:"type"`
+	SNMPCommunity string `json:"snmp_community"`
+	SNMPVersion   int    `json:"snmp_version"`
+	Username      string `json:"username"`
+	IsRouterOS    bool   `json:"is_routeros"`
+	Notes         string `json:"notes"`
 }
 
 // UpdateDeviceRequest is the request body for updating a device.
 type UpdateDeviceRequest struct {
-	Name          string   `json:"name"`
-	IP            string   `json:"ip"`
-	MAC           string   `json:"mac"`
-	Type          string   `json:"type"`
-	SNMPCommunity string   `json:"snmp_community"`
-	SNMPVersion   int      `json:"snmp_version"`
-	Username      string   `json:"username"`
-	IsRouterOS    bool     `json:"is_routeros"`
-	Notes         string   `json:"notes"`
-	Status        string   `json:"status"`
+	Name          string `json:"name"`
+	IP            string `json:"ip"`
+	MAC           string `json:"mac"`
+	Type          string `json:"type"`
+	SNMPCommunity string `json:"snmp_community"`
+	SNMPVersion   int    `json:"snmp_version"`
+	Username      string `json:"username"`
+	IsRouterOS    bool   `json:"is_routeros"`
+	Notes         string `json:"notes"`
+	Status        string `json:"status"`
 }
 
 // List returns all devices.
 func (h *DeviceHandler) List(c *gin.Context) {
 	devices, err := h.database.ListDevices(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "list devices", err)
 		return
 	}
 	if devices == nil {
@@ -64,10 +65,9 @@ func (h *DeviceHandler) List(c *gin.Context) {
 
 // Get returns a single device by ID.
 func (h *DeviceHandler) Get(c *gin.Context) {
-	id := c.Param("id")
-	device, err := h.database.GetDevice(c.Request.Context(), id)
+	device, err := h.database.GetDevice(c.Request.Context(), c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "get device", err)
 		return
 	}
 	if device == nil {
@@ -81,6 +81,22 @@ func (h *DeviceHandler) Get(c *gin.Context) {
 func (h *DeviceHandler) Create(c *gin.Context) {
 	var req CreateDeviceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := validateIP(req.IP); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := validateMAC(req.MAC); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := validateSNMPVersion(req.SNMPVersion); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := validateStringLen("notes", req.Notes, 1024); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -101,7 +117,6 @@ func (h *DeviceHandler) Create(c *gin.Context) {
 		ParentIDs:     []string{},
 		CreatedAt:     now,
 	}
-
 	if device.SNMPCommunity == "" {
 		device.SNMPCommunity = "public"
 	}
@@ -113,20 +128,18 @@ func (h *DeviceHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.database.CreateDevice(c.Request.Context(), device); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "create device", err)
 		return
 	}
-
 	c.JSON(http.StatusCreated, device)
 }
 
 // Update modifies an existing device.
 func (h *DeviceHandler) Update(c *gin.Context) {
 	id := c.Param("id")
-
 	existing, err := h.database.GetDevice(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "get device", err)
 		return
 	}
 	if existing == nil {
@@ -140,14 +153,36 @@ func (h *DeviceHandler) Update(c *gin.Context) {
 		return
 	}
 
-	if req.Name != "" {
-		existing.Name = req.Name
-	}
 	if req.IP != "" {
+		if err := validateIP(req.IP); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		existing.IP = req.IP
 	}
 	if req.MAC != "" {
+		if err := validateMAC(req.MAC); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		existing.MAC = req.MAC
+	}
+	if req.SNMPVersion != 0 {
+		if err := validateSNMPVersion(req.SNMPVersion); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		existing.SNMPVersion = req.SNMPVersion
+	}
+	if req.Notes != "" {
+		if err := validateStringLen("notes", req.Notes, 1024); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		existing.Notes = req.Notes
+	}
+	if req.Name != "" {
+		existing.Name = req.Name
 	}
 	if req.Type != "" {
 		existing.Type = db.DeviceType(req.Type)
@@ -155,24 +190,17 @@ func (h *DeviceHandler) Update(c *gin.Context) {
 	if req.SNMPCommunity != "" {
 		existing.SNMPCommunity = req.SNMPCommunity
 	}
-	if req.SNMPVersion != 0 {
-		existing.SNMPVersion = req.SNMPVersion
-	}
 	if req.Username != "" {
 		existing.Username = req.Username
-	}
-	if req.Notes != "" {
-		existing.Notes = req.Notes
 	}
 	if req.Status != "" {
 		existing.Status = db.DeviceStatus(req.Status)
 	}
 
 	if err := h.database.UpdateDevice(c.Request.Context(), *existing); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "update device", err)
 		return
 	}
-
 	c.JSON(http.StatusOK, existing)
 }
 
@@ -180,18 +208,30 @@ func (h *DeviceHandler) Update(c *gin.Context) {
 func (h *DeviceHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	if err := h.database.DeleteDevice(c.Request.Context(), id); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		if errors.Is(err, db.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "device not found"})
+			return
+		}
+		internalError(c, "delete device", err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"deleted": id})
 }
 
-// Ack acknowledges a device (sets status to acked).
+// Ack acknowledges a device alert (sets status to acked).
 func (h *DeviceHandler) Ack(c *gin.Context) {
 	id := c.Param("id")
 	if err := h.database.UpdateDeviceStatus(c.Request.Context(), id, db.DeviceStatusAcked, time.Now()); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "ack device", err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"acked": id})
+}
+
+// internalError logs the error server-side and returns a generic 500 to the client.
+// Never expose raw DB/internal errors to the client.
+func internalError(c *gin.Context, op string, err error) {
+	slog.Error("handler error", "op", op, "error", err,
+		"method", c.Request.Method, "path", c.Request.URL.Path)
+	c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 }
