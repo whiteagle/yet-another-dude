@@ -170,7 +170,7 @@ export default function TopologyMap({ devices, links = [], positions, onSave }: 
   )
 
   const [nodes, setNodes, onNodesChange] = useNodesState(buildNodes(devices))
-  const [edges, , onEdgesChange] = useEdgesState(buildEdges(links))
+  const [edges, setEdges, onEdgesChange] = useEdgesState(buildEdges(links))
 
   // Sync nodes when devices/positions change
   useEffect(() => {
@@ -178,9 +178,8 @@ export default function TopologyMap({ devices, links = [], positions, onSave }: 
   }, [devices, buildNodes, setNodes])
 
   useEffect(() => {
-    // @ts-ignore
     setEdges(buildEdges(links))
-  }, [links, buildEdges])
+  }, [links, buildEdges, setEdges])
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 

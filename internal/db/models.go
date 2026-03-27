@@ -176,17 +176,117 @@ type AlertEvent struct {
 	TriggeredAt time.Time `json:"triggered_at"`
 }
 
-// ServerSettings holds global server configuration.
+// ServerSettings holds all global server configuration — mirrors The Dude's Preferences dialog.
 type ServerSettings struct {
-	PrimaryDNS      string  `json:"primary_dns"`
-	SecondaryDNS    string  `json:"secondary_dns"`
-	PrimarySMTP     string  `json:"primary_smtp"`
-	SecondarySMTP   string  `json:"secondary_smtp"`
-	SMTPFrom        string  `json:"smtp_from"`
-	ProbeIntervalSec int    `json:"probe_interval_sec"`
-	ProbeTimeoutSec  int    `json:"probe_timeout_sec"`
-	ProbeDownCount  int     `json:"probe_down_count"`
-	WebPort         int     `json:"web_port"`
-	SyslogEnabled   bool    `json:"syslog_enabled"`
-	SyslogPort      int     `json:"syslog_port"`
+	// Misc tab
+	UndoQueueSize             int    `json:"undo_queue_size"`
+	DBCommitIntervalSec       int    `json:"db_commit_interval_sec"`
+	MacMappingRefreshSec      int    `json:"mac_mapping_refresh_sec"`
+	AskConfirmRemove          bool   `json:"ask_confirm_remove"`
+	ResolveMACManufacturer    bool   `json:"resolve_mac_manufacturer"`
+	ContentsPaneBehavior      string `json:"contents_pane_behavior"` // single_click | double_click | double_click_top
+
+	// General tab (DNS)
+	PrimaryDNS   string `json:"primary_dns"`
+	SecondaryDNS string `json:"secondary_dns"`
+
+	// SNMP tab
+	SNMPDefaultPort int `json:"snmp_default_port"`
+	SNMPTimeoutSec  int `json:"snmp_timeout_sec"`
+
+	// Service Polling tab
+	ProbeIntervalSec         int  `json:"probe_interval_sec"`
+	ProbeTimeoutSec          int  `json:"probe_timeout_sec"`
+	ProbeDownCount           int  `json:"probe_down_count"`
+	NotifyPopup              bool `json:"notify_popup"`
+	NotifyBeep               bool `json:"notify_beep"`
+	NotifyEmail              bool `json:"notify_email"`
+	NotifyProgram            bool `json:"notify_program"`
+
+	// Server tab
+	ServerPort            int    `json:"server_port"`
+	ServerSecurePort      int    `json:"server_secure_port"`
+	ServerAllowedNetworks string `json:"server_allowed_networks"`
+
+	// Web Access tab
+	WebEnabled         bool   `json:"web_enabled"`
+	WebPort            int    `json:"web_port"`
+	WebSecurePort      int    `json:"web_secure_port"`
+	WebAllowedNetworks string `json:"web_allowed_networks"`
+	WebSessionTimeout  int    `json:"web_session_timeout"`
+	WebRefreshInterval int    `json:"web_refresh_interval"`
+
+	// Syslog tab
+	SyslogEnabled        bool   `json:"syslog_enabled"`
+	SyslogPort           int    `json:"syslog_port"`
+	SyslogLogFile        string `json:"syslog_log_file"`
+	SyslogStartNewFile   string `json:"syslog_start_new_file"` // never | daily | weekly | monthly
+	SyslogLogsToKeep     int    `json:"syslog_logs_to_keep"`
+	SyslogBufferedEntries int   `json:"syslog_buffered_entries"`
+
+	// SMTP tab
+	PrimarySMTP  string `json:"primary_smtp"`
+	SecondarySMTP string `json:"secondary_smtp"`
+	SMTPFrom     string `json:"smtp_from"`
+
+	// Map Settings tab
+	MapAntialiased bool `json:"map_antialiased"`
+	MapGradients   bool `json:"map_gradients"`
+
+	// Chart Settings tab
+	ChartValueKeepDays int `json:"chart_value_keep_days"`
+
+	// Report/PDF tab
+	ReportFontFamily string `json:"report_font_family"`
+	ReportFontSize   int    `json:"report_font_size"`
+
+	// Discover tab
+	DiscoverItemWidth   int `json:"discover_item_width"`
+	DiscoverItemHeight  int `json:"discover_item_height"`
+	DiscoverGroupSize   int `json:"discover_group_size"`
+
+	// RouterOS tab
+	RouterOSTimeoutSec  int `json:"routeros_timeout_sec"`
+	RouterOSIntervalSec int `json:"routeros_interval_sec"`
+}
+
+// DefaultSettings returns sensible defaults matching The Dude's defaults.
+func DefaultSettings() ServerSettings {
+	return ServerSettings{
+		UndoQueueSize:             32,
+		DBCommitIntervalSec:       30,
+		MacMappingRefreshSec:      300,
+		AskConfirmRemove:          true,
+		ResolveMACManufacturer:    true,
+		ContentsPaneBehavior:      "single_click",
+		PrimaryDNS:                "8.8.8.8",
+		SecondaryDNS:              "8.8.4.4",
+		SNMPDefaultPort:           161,
+		SNMPTimeoutSec:            3,
+		ProbeIntervalSec:          30,
+		ProbeTimeoutSec:           10,
+		ProbeDownCount:            5,
+		NotifyPopup:               true,
+		ServerPort:                8080,
+		ServerSecurePort:          8443,
+		WebEnabled:                true,
+		WebPort:                   8080,
+		WebSecurePort:             8443,
+		WebSessionTimeout:         3600,
+		WebRefreshInterval:        60,
+		SyslogPort:                514,
+		SyslogStartNewFile:        "never",
+		SyslogLogsToKeep:          10,
+		SyslogBufferedEntries:     100,
+		MapAntialiased:            true,
+		MapGradients:              true,
+		ChartValueKeepDays:        90,
+		ReportFontFamily:          "DejaVu Sans",
+		ReportFontSize:            10,
+		DiscoverItemWidth:         90,
+		DiscoverItemHeight:        60,
+		DiscoverGroupSize:         10,
+		RouterOSTimeoutSec:        5,
+		RouterOSIntervalSec:       60,
+	}
 }

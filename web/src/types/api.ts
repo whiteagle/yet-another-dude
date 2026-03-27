@@ -192,17 +192,76 @@ export interface CreateAlertRequest {
 }
 
 export interface ServerSettings {
+  // Misc
+  undo_queue_size: number
+  db_commit_interval_sec: number
+  mac_mapping_refresh_sec: number
+  ask_confirm_remove: boolean
+  resolve_mac_manufacturer: boolean
+  contents_pane_behavior: string
+
+  // General (DNS)
   primary_dns: string
   secondary_dns: string
-  primary_smtp: string
-  secondary_smtp: string
-  smtp_from: string
+
+  // SNMP
+  snmp_default_port: number
+  snmp_timeout_sec: number
+
+  // Service Polling
   probe_interval_sec: number
   probe_timeout_sec: number
   probe_down_count: number
+  notify_popup: boolean
+  notify_beep: boolean
+  notify_email: boolean
+  notify_program: boolean
+
+  // Server
+  server_port: number
+  server_secure_port: number
+  server_allowed_networks: string
+
+  // Web Access
+  web_enabled: boolean
   web_port: number
+  web_secure_port: number
+  web_allowed_networks: string
+  web_session_timeout: number
+  web_refresh_interval: number
+
+  // Syslog
   syslog_enabled: boolean
   syslog_port: number
+  syslog_log_file: string
+  syslog_start_new_file: string
+  syslog_logs_to_keep: number
+  syslog_buffered_entries: number
+
+  // SMTP
+  primary_smtp: string
+  secondary_smtp: string
+  smtp_from: string
+
+  // Map Settings
+  map_antialiased: boolean
+  map_gradients: boolean
+
+  // Chart Settings
+  chart_value_keep_days: number
+
+  // Report/PDF
+  report_font_family: string
+  report_font_size: number
+
+  // Discover
+  discover_item_width: number
+  discover_item_height: number
+  discover_group_size: number
+
+  // RouterOS
+  routeros_timeout_sec: number
+  routeros_interval_sec: number
 }
 
 // Status color map (matches The Dude exactly)

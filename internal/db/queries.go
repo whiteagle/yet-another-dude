@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -492,4 +493,44 @@ func (d *DB) ListAlertHistory(ctx context.Context, limit int) ([]AlertEvent, err
 		events = append(events, e)
 	}
 	return events, rows.Err()
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+
+const settingsKey = "server_settings"
+
+// GetSettings loads server settings from the DB; returns defaults if not yet saved.
+func (d *DB) GetSettings(ctx context.Context) (ServerSettings, error) {
+	var raw string
+	err := d.conn.QueryRowContext(ctx,
+		`SELECT value FROM settings WHERE key = ?`, settingsKey,
+	).Scan(&raw)
+	if err == sql.ErrNoRows {
+		return DefaultSettings(), nil
+	}
+	if err != nil {
+		return DefaultSettings(), fmt.Errorf("get settings: %w", err)
+	}
+	var s ServerSettings
+	if err := json.Unmarshal([]byte(raw), &s); err != nil {
+		return DefaultSettings(), fmt.Errorf("unmarshal settings: %w", err)
+	}
+	return s, nil
+}
+
+// SaveSettings persists server settings to the DB.
+func (d *DB) SaveSettings(ctx context.Context, s ServerSettings) error {
+	data, err := json.Marshal(s)
+	if err != nil {
+		return fmt.Errorf("marshal settings: %w", err)
+	}
+	_, err = d.conn.ExecContext(ctx,
+		`INSERT INTO settings (key, value) VALUES (?, ?)
+		 ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+		settingsKey, string(data),
+	)
+	if err != nil {
+		return fmt.Errorf("save settings: %w", err)
+	}
+	return nil
 }
