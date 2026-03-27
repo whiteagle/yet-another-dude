@@ -2,8 +2,10 @@
 package api
 
 import (
+	"io"
 	"io/fs"
 	"net/http"
+	"path/filepath"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -37,6 +39,8 @@ type Server struct {
 func NewServer(cfg ServerConfig) *Server {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
+	router.RedirectTrailingSlash = false
+	router.RedirectFixedPath = false
 	router.Use(gin.Recovery())
 	router.Use(middleware.StructuredLogger())
 	router.Use(cors.New(middleware.DefaultCORSConfig()))
@@ -63,18 +67,29 @@ func (s *Server) setupRoutes() {
 	setupRoutes(v1, s.cfg)
 
 	if s.cfg.FrontendFS != nil {
-		s.router.NoRoute(func(c *gin.Context) {
-			path := c.Request.URL.Path
-			if path == "/" {
-				path = "/index.html"
-			}
-			f, err := s.cfg.FrontendFS.Open(path[1:])
+		serveIndex := func(c *gin.Context) {
+			f, err := s.cfg.FrontendFS.Open("index.html")
 			if err != nil {
-				c.FileFromFS("index.html", http.FS(s.cfg.FrontendFS))
+				c.Status(http.StatusNotFound)
 				return
 			}
-			f.Close()
-			c.FileFromFS(path[1:], http.FS(s.cfg.FrontendFS))
+			defer f.Close()
+			data, _ := io.ReadAll(f)
+			c.Data(http.StatusOK, "text/html; charset=utf-8", data)
+		}
+
+		s.router.GET("/", serveIndex)
+		s.router.NoRoute(func(c *gin.Context) {
+			path := c.Request.URL.Path[1:] // strip leading /
+			f, err := s.cfg.FrontendFS.Open(path)
+			if err != nil {
+				serveIndex(c)
+				return
+			}
+			defer f.Close()
+			data, _ := io.ReadAll(f)
+			mime := mimeByExt(path)
+			c.Data(http.StatusOK, mime, data)
 		})
 	}
 }
@@ -92,7 +107,7 @@ func setupRoutes(rg *gin.RouterGroup, cfg ServerConfig) {
 	// Services
 	sh := handlers.NewServiceHandler(cfg.DB)
 	rg.GET("/services", sh.ListAll)
-	rg.GET("/devices/:device_id/services", sh.ListByDevice)
+	rg.GET("/services/device/:device_id", sh.ListByDevice)
 	rg.POST("/services", sh.Create)
 	rg.DELETE("/services/:id", sh.Delete)
 
@@ -125,4 +140,30 @@ func setupRoutes(rg *gin.RouterGroup, cfg ServerConfig) {
 	rg.GET("/alerts", ah.ListRules)
 	rg.POST("/alerts", ah.CreateRule)
 	rg.GET("/alerts/history", ah.History)
+
+	// Settings
+	seth := handlers.NewSettingsHandler(cfg.DB)
+	rg.GET("/settings", seth.Get)
+	rg.PUT("/settings", seth.Save)
+}
+
+func mimeByExt(path string) string {
+	switch filepath.Ext(path) {
+	case ".html":
+		return "text/html; charset=utf-8"
+	case ".js":
+		return "application/javascript"
+	case ".css":
+		return "text/css"
+	case ".svg":
+		return "image/svg+xml"
+	case ".png":
+		return "image/png"
+	case ".ico":
+		return "image/x-icon"
+	case ".json":
+		return "application/json"
+	default:
+		return "application/octet-stream"
+	}
 }

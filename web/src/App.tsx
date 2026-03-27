@@ -119,12 +119,113 @@ function WinBtn({ children, onClick, title, className = '' }: {
   )
 }
 
+// Toolbar is aware of current route so buttons do the right thing
+function Toolbar() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [showDiscovery, setShowDiscovery] = useState(false)
+  const [showPrefs, setShowPrefs] = useState(false)
+  const isTopology = location.pathname === '/' || location.pathname === '/topology'
+
+  return (
+    <>
+      <div className="bg-[#d4d0c8] border-b border-[#808080] flex items-center gap-[2px] px-1 py-[2px] shrink-0">
+        <WinBtn title="Add device" onClick={() => navigate('/devices')}>+</WinBtn>
+        <WinBtn title="Remove">−</WinBtn>
+        <WinBtn title="Copy">⎘</WinBtn>
+        <WinBtn title="Paste">📋</WinBtn>
+        <WinBtn title="Lock">🔒</WinBtn>
+        <WinBtn title="Drag mode">✥</WinBtn>
+        <WinBtn title="Select mode">↖</WinBtn>
+        <div className="w-px h-4 bg-[#808080] mx-0.5" />
+        <WinBtn onClick={() => navigate('/settings')}>Settings</WinBtn>
+        <WinBtn onClick={() => setShowDiscovery(true)}>Discover</WinBtn>
+        <ToolsMenu />
+        <div className="w-px h-4 bg-[#808080] mx-0.5" />
+        <WinBtn title="Find device">🔍</WinBtn>
+        {isTopology && <WinBtn title="Align in rows">⠿</WinBtn>}
+        {isTopology && <WinBtn title="Align in circle">◎</WinBtn>}
+        <div className="flex-1" />
+        <span className="text-[11px] text-gray-600 mr-0.5">Layer:</span>
+        <select className="text-[11px] border border-[#808080] bg-white h-5 px-0.5">
+          <option>links</option>
+          <option>dependencies</option>
+        </select>
+        <span className="text-[11px] text-gray-600 ml-1 mr-0.5">Zoom:</span>
+        <select className="text-[11px] border border-[#808080] bg-white h-5 px-0.5 w-16">
+          <option>100%</option>
+          <option>75%</option>
+          <option>50%</option>
+          <option>150%</option>
+          <option>200%</option>
+        </select>
+      </div>
+
+      {/* Discovery wizard overlay — rendered at app level so it works from toolbar */}
+      {showDiscovery && <DiscoveryOverlay onClose={() => setShowDiscovery(false)} />}
+      {showPrefs && <PrefsDialog onClose={() => setShowPrefs(false)} />}
+    </>
+  )
+}
+
+// ▼ Tools dropdown menu
+function ToolsMenu() {
+  const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
+
+  const items = [
+    { label: 'Ping…', action: () => {} },
+    { label: 'Traceroute…', action: () => {} },
+    { label: 'DNS Lookup…', action: () => {} },
+    { label: '─', action: () => {} },
+    { label: 'Outages', action: () => navigate('/outages') },
+    { label: 'Services', action: () => navigate('/services') },
+    { label: 'Logs', action: () => navigate('/logs/event') },
+  ]
+
+  return (
+    <div className="relative">
+      <WinBtn onClick={() => setOpen((v) => !v)}>▼ Tools</WinBtn>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 z-50 bg-[#ece9d8] border border-[#808080]
+            shadow-[2px_2px_4px_rgba(0,0,0,0.3)] min-w-[140px] py-0.5 text-[12px]">
+            {items.map((item) =>
+              item.label === '─' ? (
+                <div key="sep" className="border-t border-[#808080] my-0.5" />
+              ) : (
+                <div
+                  key={item.label}
+                  onClick={() => { item.action(); setOpen(false) }}
+                  className="px-4 py-[2px] hover:bg-[#0066cc] hover:text-white cursor-default"
+                >
+                  {item.label}
+                </div>
+              )
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+import DiscoveryWizard from './components/DiscoveryWizard'
+import PrefsDialog from './components/PrefsDialog'
+
+function DiscoveryOverlay({ onClose }: { onClose: () => void }) {
+  return <DiscoveryWizard onClose={onClose} />
+}
+
 export default function App() {
+  const [showPrefs, setShowPrefs] = useState(false)
+
   return (
     <div className="flex flex-col h-screen bg-[#ece9d8] text-gray-900 font-[Tahoma,Arial,sans-serif]">
       {/* Top header bar */}
       <header className="bg-[#d4d0c8] border-b border-[#808080] flex items-center gap-1 px-1 py-[2px] shrink-0">
-        <WinBtn>Preferences</WinBtn>
+        <WinBtn onClick={() => setShowPrefs(true)}>Preferences</WinBtn>
         <div className="flex items-center gap-1 px-2 py-[1px] bg-[#d4d0c8] border border-[#808080]
           shadow-[inset_1px_1px_#fff,inset_-1px_-1px_#808080] text-[11px]">
           <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
@@ -146,7 +247,6 @@ export default function App() {
               <TreeNode key={item.label} item={item} />
             ))}
           </div>
-          {/* Mini map at bottom */}
           <div className="h-24 border-t border-gray-300 bg-[#f0f0f0] flex items-center justify-center shrink-0">
             <span className="text-[10px] text-gray-400">[ mini map ]</span>
           </div>
@@ -154,38 +254,8 @@ export default function App() {
 
         {/* Main area */}
         <main className="flex-1 flex flex-col overflow-hidden">
-          {/* Map toolbar row */}
-          <div className="bg-[#d4d0c8] border-b border-[#808080] flex items-center gap-[2px] px-1 py-[2px] shrink-0">
-            <WinBtn title="Add item">+</WinBtn>
-            <WinBtn title="Remove">−</WinBtn>
-            <WinBtn title="Copy">⎘</WinBtn>
-            <WinBtn title="Paste">📋</WinBtn>
-            <WinBtn title="Lock">🔒</WinBtn>
-            <WinBtn title="Drag">✥</WinBtn>
-            <WinBtn title="Select">↖</WinBtn>
-            <div className="w-px h-4 bg-[#808080] mx-0.5" />
-            <WinBtn>Settings</WinBtn>
-            <WinBtn>Discover</WinBtn>
-            <WinBtn>▼ Tools</WinBtn>
-            <div className="w-px h-4 bg-[#808080] mx-0.5" />
-            <WinBtn title="Find">🔍</WinBtn>
-            <WinBtn title="Align rows">⠿</WinBtn>
-            <WinBtn title="Align circle">◎</WinBtn>
-            <div className="flex-1" />
-            <span className="text-[11px] text-gray-600 mr-0.5">Layer:</span>
-            <select className="text-[11px] border border-[#808080] bg-white h-5 px-0.5">
-              <option>links</option>
-              <option>dependencies</option>
-            </select>
-            <span className="text-[11px] text-gray-600 ml-1 mr-0.5">Zoom:</span>
-            <select className="text-[11px] border border-[#808080] bg-white h-5 px-0.5 w-16">
-              <option>100%</option>
-              <option>75%</option>
-              <option>50%</option>
-              <option>150%</option>
-              <option>200%</option>
-            </select>
-          </div>
+          {/* Toolbar — route-aware */}
+          <Toolbar />
 
           {/* Pane tab */}
           <div className="bg-[#d4d0c8] border-b border-[#808080] flex items-end px-1 shrink-0 h-5">
@@ -217,6 +287,8 @@ export default function App() {
         <div className="flex-1" />
         <span className="text-gray-600">Server: rx 0 bps / tx 0 bps</span>
       </footer>
+
+      {showPrefs && <PrefsDialog onClose={() => setShowPrefs(false)} />}
     </div>
   )
 }

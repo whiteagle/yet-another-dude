@@ -9,6 +9,7 @@ all: build
 ## frontend: Build React frontend and copy to embed location
 frontend:
 	cd web && npm install && npm run build
+	rm -rf internal/frontend/dist
 	cp -r web/dist internal/frontend/dist
 
 ## backend: Build Go binary (requires frontend to be built first)

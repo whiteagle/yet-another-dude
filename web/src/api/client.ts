@@ -8,6 +8,7 @@ import type {
   AlertRule,
   AlertEvent,
   ScanStatus,
+  ServerSettings,
   CreateDeviceRequest,
   CreateAlertRequest,
   ScanRequest,
@@ -69,7 +70,7 @@ export async function listServices(): Promise<Service[]> {
 }
 
 export async function listDeviceServices(deviceId: string): Promise<Service[]> {
-  return request<Service[]>(`/devices/${deviceId}/services`)
+  return request<Service[]>(`/services/device/${deviceId}`)
 }
 
 export async function createService(data: { device_id: string; probe: string; probe_type?: string; port?: number; notes?: string }): Promise<Service> {
@@ -158,4 +159,13 @@ export async function createAlertRule(data: CreateAlertRequest): Promise<AlertRu
 export async function getAlertHistory(limit?: number): Promise<AlertEvent[]> {
   const query = limit ? `?limit=${limit}` : ''
   return request<AlertEvent[]>(`/alerts/history${query}`)
+}
+
+// Settings
+export async function getSettings(): Promise<ServerSettings> {
+  return request<ServerSettings>('/settings')
+}
+
+export async function saveSettings(s: ServerSettings): Promise<ServerSettings> {
+  return request<ServerSettings>('/settings', { method: 'PUT', body: JSON.stringify(s) })
 }
