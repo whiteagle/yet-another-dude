@@ -28,7 +28,7 @@ type CreateServiceRequest struct {
 func (h *ServiceHandler) ListAll(c *gin.Context) {
 	services, err := h.database.ListAllServices(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "", err)
 		return
 	}
 	if services == nil {
@@ -41,7 +41,7 @@ func (h *ServiceHandler) ListByDevice(c *gin.Context) {
 	deviceID := c.Param("device_id")
 	services, err := h.database.ListServicesByDevice(c.Request.Context(), deviceID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "", err)
 		return
 	}
 	if services == nil {
@@ -74,7 +74,7 @@ func (h *ServiceHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.database.CreateService(c.Request.Context(), svc); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "", err)
 		return
 	}
 	c.JSON(http.StatusCreated, svc)
@@ -83,7 +83,7 @@ func (h *ServiceHandler) Create(c *gin.Context) {
 func (h *ServiceHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	if err := h.database.DeleteService(c.Request.Context(), id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "", err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"deleted": id})

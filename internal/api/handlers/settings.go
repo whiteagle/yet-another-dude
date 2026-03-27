@@ -14,7 +14,7 @@ func NewSettingsHandler(d *db.DB) *SettingsHandler { return &SettingsHandler{db:
 func (h *SettingsHandler) Get(c *gin.Context) {
 	s, err := h.db.GetSettings(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "", err)
 		return
 	}
 	c.JSON(http.StatusOK, s)
@@ -27,7 +27,7 @@ func (h *SettingsHandler) Save(c *gin.Context) {
 		return
 	}
 	if err := h.db.SaveSettings(c.Request.Context(), s); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		internalError(c, "", err)
 		return
 	}
 	c.JSON(http.StatusOK, s)

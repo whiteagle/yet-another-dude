@@ -1,6 +1,12 @@
 package db
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+// ErrNotFound is returned when a requested resource does not exist.
+var ErrNotFound = errors.New("not found")
 
 // DeviceType represents the type of network device.
 type DeviceType string

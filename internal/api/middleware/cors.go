@@ -11,11 +11,11 @@ import (
 // DefaultCORSConfig returns the default CORS configuration.
 func DefaultCORSConfig() cors.Config {
 	return cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:8080"},
+		AllowOriginFunc:  func(_ string) bool { return true },
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "X-API-Key"},
 		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
+		AllowCredentials: false, // must be false when AllowOriginFunc allows all
 		MaxAge:           12 * time.Hour,
 	}
 }
