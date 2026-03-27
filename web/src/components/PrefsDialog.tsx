@@ -257,7 +257,7 @@ export default function PrefsDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Tab content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+        <div style={{ height: 320, overflowY: 'auto', padding: '12px 16px' }}>
           {loading ? (
             <div style={{ fontSize: 12, color: '#666', padding: 16 }}>Loading…</div>
           ) : (
