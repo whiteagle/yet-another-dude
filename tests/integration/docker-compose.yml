@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  snmpsim:
+    image: tandrii/snmpsim:latest
+    volumes:
+      - ../../testdata/snmprec:/usr/local/snmpsim/data
+    ports:
+      - "1161:161/udp"
+    command: >
+      --data-dir=/usr/local/snmpsim/data
+      --agent-udpv4-endpoint=0.0.0.0:161
+
+  yad:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - YAD_LISTEN=:8080
+      - YAD_DB=/tmp/yad-test.db
+    depends_on:
+      - snmpsim
