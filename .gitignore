@@ -6,8 +6,8 @@ web/node_modules/
 web/dist/
 internal/frontend/dist/
 bin/
-yad
-yad.exe
+/yad
+/yad.exe
 *.sqlite3
 vendor/
 coverage.out
