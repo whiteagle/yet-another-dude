@@ -16,3 +16,6 @@ __pycache__/
 .DS_Store
 *.pem
 *.key
+
+*.db-shm
+*.db-wal
