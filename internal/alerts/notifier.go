@@ -82,6 +82,13 @@ func (n *EmailNotifier) Notify(ctx context.Context, event db.AlertEvent, rule db
 	if err != nil {
 		return fmt.Errorf("dial smtp %s: %w", addr, err)
 	}
+	// Apply a hard deadline on the connection itself so that all SMTP operations
+	// (AUTH, MAIL FROM, RCPT TO, DATA, body write) are also bounded, not just the
+	// initial TCP dial.
+	if err := conn.SetDeadline(time.Now().Add(smtpTimeout)); err != nil {
+		conn.Close()
+		return fmt.Errorf("set smtp deadline: %w", err)
+	}
 
 	c, err := smtp.NewClient(conn, n.SMTPHost)
 	if err != nil {

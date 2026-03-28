@@ -73,7 +73,10 @@ func (h *DiscoveryHandler) Scan(c *gin.Context) {
 			}
 			slog.Info("discovered host", "ip", result.IP, "rtt", result.RTT)
 
-			info, _ := h.poller.GetDeviceInfo(bgCtx, result.IP, community, snmp.SNMPv2c)
+			info, err := h.poller.GetDeviceInfo(bgCtx, result.IP, community, snmp.SNMPv2c)
+			if err != nil {
+				slog.Debug("snmp device info unavailable during discovery", "ip", result.IP, "error", err)
+			}
 
 			now := time.Now()
 			dev := db.Device{
