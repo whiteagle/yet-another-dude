@@ -10,7 +10,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
-	"github.com/whiteagle/yet-another-dude/internal/alerts"
 	"github.com/whiteagle/yet-another-dude/internal/api/handlers"
 	"github.com/whiteagle/yet-another-dude/internal/api/middleware"
 	"github.com/whiteagle/yet-another-dude/internal/db"
@@ -20,13 +19,11 @@ import (
 
 // ServerConfig holds the dependencies for the API server.
 type ServerConfig struct {
-	DB          *db.DB
-	Scanner     *discovery.Scanner
-	Poller      *snmp.Poller
-	AlertEngine *alerts.Engine
-	Notifier    alerts.Notifier
-	FrontendFS  fs.FS
-	APIKey      string
+	DB         *db.DB
+	Scanner    *discovery.Scanner
+	Poller     *snmp.Poller
+	FrontendFS fs.FS
+	APIKey     string
 }
 
 // Server is the HTTP API server.
@@ -145,6 +142,10 @@ func setupRoutes(rg *gin.RouterGroup, cfg ServerConfig) {
 	seth := handlers.NewSettingsHandler(cfg.DB)
 	rg.GET("/settings", seth.Get)
 	rg.PUT("/settings", seth.Save)
+
+	// Syslog
+	sysh := handlers.NewSyslogHandler(cfg.DB)
+	rg.GET("/syslog", sysh.List)
 }
 
 func mimeByExt(path string) string {

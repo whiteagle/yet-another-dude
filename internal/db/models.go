@@ -182,6 +182,19 @@ type AlertEvent struct {
 	TriggeredAt time.Time `json:"triggered_at"`
 }
 
+// SyslogMessage is an RFC 3164 syslog entry received by the built-in syslog server.
+type SyslogMessage struct {
+	ID         int64     `json:"id"`
+	ReceivedAt time.Time `json:"received_at"`
+	Facility   int       `json:"facility"`
+	Severity   int       `json:"severity"`
+	Hostname   string    `json:"hostname"`
+	Tag        string    `json:"tag"`
+	Message    string    `json:"message"`
+	RawData    string    `json:"raw"`
+	SourceIP   string    `json:"source_ip"`
+}
+
 // ServerSettings holds all global server configuration — mirrors The Dude's Preferences dialog.
 type ServerSettings struct {
 	// Misc tab
@@ -231,9 +244,11 @@ type ServerSettings struct {
 	SyslogBufferedEntries int   `json:"syslog_buffered_entries"`
 
 	// SMTP tab
-	PrimarySMTP  string `json:"primary_smtp"`
+	PrimarySMTP   string `json:"primary_smtp"`
 	SecondarySMTP string `json:"secondary_smtp"`
-	SMTPFrom     string `json:"smtp_from"`
+	SMTPFrom      string `json:"smtp_from"`
+	SMTPUsername  string `json:"smtp_username"`
+	SMTPPassword  string `json:"smtp_password"`
 
 	// Map Settings tab
 	MapAntialiased bool `json:"map_antialiased"`

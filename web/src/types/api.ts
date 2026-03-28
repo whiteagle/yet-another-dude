@@ -242,6 +242,8 @@ export interface ServerSettings {
   primary_smtp: string
   secondary_smtp: string
   smtp_from: string
+  smtp_username: string
+  smtp_password: string
 
   // Map Settings
   map_antialiased: boolean
@@ -262,6 +264,19 @@ export interface ServerSettings {
   // RouterOS
   routeros_timeout_sec: number
   routeros_interval_sec: number
+}
+
+// An RFC 3164 syslog message received by the built-in syslog server.
+export interface SyslogMessage {
+  id: number
+  received_at: string
+  facility: number
+  severity: number
+  hostname: string
+  tag: string
+  message: string
+  raw: string
+  source_ip: string
 }
 
 // Status color map (matches The Dude exactly)

@@ -198,8 +198,8 @@ YAD is designed for trusted private networks (like The Dude was).
 | Open source | ❌ | ✅ |
 | Linux / macOS | ❌ | ✅ |
 | Single binary | ❌ | ✅ |
-| Email notifications | ✅ | 🚧 |
-| Syslog server | ✅ | 🚧 |
+| Email notifications | ✅ | ✅ |
+| Syslog server | ✅ | ✅ |
 
 ✅ Done · 🚧 In progress
 

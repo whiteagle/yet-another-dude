@@ -38,6 +38,8 @@ const DEFAULTS: ServerSettings = {
   primary_smtp: '',
   secondary_smtp: '',
   smtp_from: '',
+  smtp_username: '',
+  smtp_password: '',
   map_antialiased: true,
   map_gradients: true,
   chart_value_keep_days: 90,
@@ -508,16 +510,32 @@ function TabSMTP({ s, set }: { s: ServerSettings; set: SetFn }) {
     <div>
       <SectionTitle>Email (SMTP)</SectionTitle>
       <Row label="Primary SMTP server">
-        <XPInput value={s.primary_smtp} onChange={(v) => set('primary_smtp', v)} placeholder="mail.example.com" />
+        <XPInput value={s.primary_smtp} onChange={(v) => set('primary_smtp', v)} placeholder="mail.example.com or mail.example.com:587" />
       </Row>
       <Row label="Secondary SMTP server">
         <XPInput value={s.secondary_smtp} onChange={(v) => set('secondary_smtp', v)} placeholder="mail2.example.com" />
       </Row>
-      <Row label="From email address">
-        <XPInput value={s.smtp_from} onChange={(v) => set('smtp_from', v)} placeholder="dude@example.com" />
+      <Row label="From address">
+        <XPInput value={s.smtp_from} onChange={(v) => set('smtp_from', v)} placeholder="yad@example.com" />
+      </Row>
+      <Row label="Username">
+        <XPInput value={s.smtp_username} onChange={(v) => set('smtp_username', v)} placeholder="(leave blank for unauthenticated)" />
+      </Row>
+      <Row label="Password">
+        <input
+          type="password"
+          value={s.smtp_password}
+          onChange={(e) => set('smtp_password', e.target.value)}
+          style={{
+            width: '100%', border: '1px solid #808080', padding: '1px 3px',
+            fontSize: 11, fontFamily: 'Tahoma, Arial, sans-serif',
+            boxShadow: 'inset 1px 1px #fff',
+          }}
+        />
       </Row>
       <div style={{ fontSize: 11, color: '#666', marginTop: 8, marginLeft: 186 }}>
-        Used for service failure notifications when "Send email" is enabled in Service Polling.
+        Alert emails are sent when &ldquo;Send email&rdquo; is enabled in Service Polling
+        and an alert rule has a notification email address set.
       </div>
     </div>
   )
