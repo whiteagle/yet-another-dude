@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"math"
 	"net"
 	"strings"
 )
@@ -14,10 +15,32 @@ func validateIP(s string) error {
 	return nil
 }
 
-// validateCIDR returns an error if s is not a valid CIDR notation.
+// validateCIDR returns an error if s is not a valid IPv4 CIDR notation.
+// IPv6 CIDRs are rejected because the discovery scanner only supports IPv4.
 func validateCIDR(s string) error {
-	if _, _, err := net.ParseCIDR(s); err != nil {
+	ip, _, err := net.ParseCIDR(s)
+	if err != nil {
 		return fmt.Errorf("invalid CIDR %q: %w", s, err)
+	}
+	if ip.To4() == nil {
+		return fmt.Errorf("IPv6 CIDRs are not supported for discovery scanning (got %q)", s)
+	}
+	return nil
+}
+
+// validateDeviceStatus returns an error if s is not a recognised device status value.
+func validateDeviceStatus(s string) error {
+	switch s {
+	case "up", "down", "partial", "unknown", "acked":
+		return nil
+	}
+	return fmt.Errorf("invalid device status %q: must be one of up, down, partial, unknown, acked", s)
+}
+
+// validateThreshold returns an error if v is NaN or infinite.
+func validateThreshold(v float64) error {
+	if math.IsNaN(v) || math.IsInf(v, 0) {
+		return fmt.Errorf("threshold must be a finite number")
 	}
 	return nil
 }

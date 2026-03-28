@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/smtp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/whiteagle/yet-another-dude/internal/db"
@@ -60,20 +61,65 @@ func NewEmailNotifier(host string, port int, from string, auth smtp.Auth) *Email
 	}
 }
 
+// smtpTimeout is the deadline applied to the entire SMTP dialogue.
+const smtpTimeout = 15 * time.Second
+
 // Notify sends an email alert.
-func (n *EmailNotifier) Notify(_ context.Context, event db.AlertEvent, rule db.AlertRule) error {
+// A 15-second timeout is applied to the SMTP connection so that a slow or
+// unreachable mail server cannot block the notification goroutine indefinitely.
+func (n *EmailNotifier) Notify(ctx context.Context, event db.AlertEvent, rule db.AlertRule) error {
 	if rule.NotifyEmail == "" {
 		return nil
 	}
 
-	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: YAD Alert: %s\r\n\r\n%s\r\n\r\nTriggered at: %s\r\n",
-		n.From, rule.NotifyEmail, event.Message, event.Message, event.TriggeredAt.Format(time.RFC3339))
-
 	addr := fmt.Sprintf("%s:%d", n.SMTPHost, n.SMTPPort)
-	if err := smtp.SendMail(addr, n.Auth, n.From, []string{rule.NotifyEmail}, []byte(msg)); err != nil {
-		return fmt.Errorf("send email to %s: %w", rule.NotifyEmail, err)
+
+	// Honour the caller's context but add a hard cap.
+	dialCtx, cancel := context.WithTimeout(ctx, smtpTimeout)
+	defer cancel()
+
+	conn, err := (&net.Dialer{}).DialContext(dialCtx, "tcp", addr)
+	if err != nil {
+		return fmt.Errorf("dial smtp %s: %w", addr, err)
 	}
-	return nil
+
+	c, err := smtp.NewClient(conn, n.SMTPHost)
+	if err != nil {
+		conn.Close()
+		return fmt.Errorf("smtp handshake with %s: %w", n.SMTPHost, err)
+	}
+	defer c.Close()
+
+	if n.Auth != nil {
+		if err := c.Auth(n.Auth); err != nil {
+			return fmt.Errorf("smtp auth: %w", err)
+		}
+	}
+	if err := c.Mail(n.From); err != nil {
+		return fmt.Errorf("smtp MAIL FROM %s: %w", n.From, err)
+	}
+	if err := c.Rcpt(rule.NotifyEmail); err != nil {
+		return fmt.Errorf("smtp RCPT TO %s: %w", rule.NotifyEmail, err)
+	}
+
+	wc, err := c.Data()
+	if err != nil {
+		return fmt.Errorf("smtp DATA: %w", err)
+	}
+
+	body := fmt.Sprintf(
+		"From: %s\r\nTo: %s\r\nSubject: YAD Alert: %s\r\n\r\n%s\r\n\r\nTriggered at: %s\r\n",
+		n.From, rule.NotifyEmail, event.Message, event.Message,
+		event.TriggeredAt.Format(time.RFC3339),
+	)
+	if _, err := fmt.Fprint(wc, body); err != nil {
+		wc.Close()
+		return fmt.Errorf("smtp write body: %w", err)
+	}
+	if err := wc.Close(); err != nil {
+		return fmt.Errorf("smtp close data writer: %w", err)
+	}
+	return c.Quit()
 }
 
 // DBEmailNotifier reads SMTP settings from the database on each call so that
@@ -200,15 +246,16 @@ func NewMultiNotifier(notifiers ...Notifier) *MultiNotifier {
 }
 
 // Notify sends the alert to all configured notifiers, collecting errors.
+// Every notifier is attempted even if a previous one fails.
 func (m *MultiNotifier) Notify(ctx context.Context, event db.AlertEvent, rule db.AlertRule) error {
-	var errs []error
+	var msgs []string
 	for _, n := range m.notifiers {
 		if err := n.Notify(ctx, event, rule); err != nil {
-			errs = append(errs, err)
+			msgs = append(msgs, err.Error())
 		}
 	}
-	if len(errs) > 0 {
-		return fmt.Errorf("notification errors: %v", errs)
+	if len(msgs) > 0 {
+		return fmt.Errorf("notification errors: %s", strings.Join(msgs, "; "))
 	}
 	return nil
 }

@@ -73,7 +73,12 @@ function TreeNode({ item, depth = 0 }: TreeNodeProps) {
   return (
     <div>
       <div
+        role={hasChildren ? 'button' : 'link'}
+        tabIndex={0}
         onClick={handleClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick() } }}
+        aria-expanded={hasChildren ? open : undefined}
+        aria-current={isActive ? 'page' : undefined}
         className={`flex items-center gap-0.5 py-[1px] cursor-pointer select-none text-[12px]
           ${isActive ? 'bg-[#0066cc] text-white' : 'text-gray-900 hover:bg-[#cce8ff]'}
         `}

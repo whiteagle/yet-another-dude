@@ -8,6 +8,7 @@ import type {
   AlertRule,
   AlertEvent,
   ScanStatus,
+  SyslogMessage,
   ServerSettings,
   CreateDeviceRequest,
   CreateAlertRequest,
@@ -159,6 +160,12 @@ export async function createAlertRule(data: CreateAlertRequest): Promise<AlertRu
 export async function getAlertHistory(limit?: number): Promise<AlertEvent[]> {
   const query = limit ? `?limit=${limit}` : ''
   return request<AlertEvent[]>(`/alerts/history${query}`)
+}
+
+// Syslog
+export async function listSyslogMessages(limit?: number): Promise<SyslogMessage[]> {
+  const query = limit ? `?limit=${limit}` : ''
+  return request<SyslogMessage[]>(`/syslog${query}`)
 }
 
 // Settings
