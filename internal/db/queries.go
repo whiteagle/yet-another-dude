@@ -194,7 +194,10 @@ func (d *DB) UpdateServiceStatus(ctx context.Context, id string, status ServiceS
 		status,
 		id,
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("update service status: %w", err)
+	}
+	return nil
 }
 
 func (d *DB) DeleteService(ctx context.Context, id string) error {

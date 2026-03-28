@@ -30,6 +30,7 @@ func NewDiscoveryHandler(database *db.DB, scanner *discovery.Scanner, poller *sn
 type ScanRequest struct {
 	CIDR          string `json:"cidr"           binding:"required"`
 	SNMPCommunity string `json:"snmp_community"`
+	SNMPVersion   int    `json:"snmp_version"` // 1, 2 (v2c), or 3; defaults to 2
 }
 
 // Scan starts a network discovery scan and returns immediately.
@@ -51,9 +52,17 @@ func (h *DiscoveryHandler) Scan(c *gin.Context) {
 			return
 		}
 	}
+	if err := validateSNMPVersion(req.SNMPVersion); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	community := req.SNMPCommunity
 	if community == "" {
 		community = "public"
+	}
+	snmpVer := snmp.SNMPVersion(req.SNMPVersion)
+	if req.SNMPVersion == 0 {
+		snmpVer = snmp.SNMPv2c
 	}
 
 	results, err := h.scanner.Scan(c.Request.Context(), req.CIDR)
@@ -73,7 +82,7 @@ func (h *DiscoveryHandler) Scan(c *gin.Context) {
 			}
 			slog.Info("discovered host", "ip", result.IP, "rtt", result.RTT)
 
-			info, err := h.poller.GetDeviceInfo(bgCtx, result.IP, community, snmp.SNMPv2c)
+			info, err := h.poller.GetDeviceInfo(bgCtx, result.IP, community, snmpVer)
 			if err != nil {
 				slog.Debug("snmp device info unavailable during discovery", "ip", result.IP, "error", err)
 			}
@@ -84,7 +93,7 @@ func (h *DiscoveryHandler) Scan(c *gin.Context) {
 				Name:          result.IP,
 				IP:            result.IP,
 				SNMPCommunity: community,
-				SNMPVersion:   2,
+				SNMPVersion:   int(snmpVer),
 				Status:        db.DeviceStatusUp,
 				Type:          db.DeviceTypeUnknown,
 				LastSeen:      &now,
