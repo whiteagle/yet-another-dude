@@ -8,6 +8,8 @@ import SettingsPage from './pages/Settings'
 import Outages from './pages/Outages'
 import Services from './pages/Services'
 import Logs from './pages/Logs'
+import DiscoveryWizard from './components/DiscoveryWizard'
+import PrefsDialog from './components/PrefsDialog'
 
 // Contents tree — mirrors The Dude's left panel structure exactly
 interface MenuItem {
@@ -124,7 +126,6 @@ function Toolbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [showDiscovery, setShowDiscovery] = useState(false)
-  const [showPrefs, setShowPrefs] = useState(false)
   const isTopology = location.pathname === '/' || location.pathname === '/topology'
 
   return (
@@ -161,9 +162,8 @@ function Toolbar() {
         </select>
       </div>
 
-      {/* Discovery wizard overlay — rendered at app level so it works from toolbar */}
-      {showDiscovery && <DiscoveryOverlay onClose={() => setShowDiscovery(false)} />}
-      {showPrefs && <PrefsDialog onClose={() => setShowPrefs(false)} />}
+      {/* Discovery wizard overlay — rendered at toolbar level so it works from toolbar */}
+      {showDiscovery && <DiscoveryWizard onClose={() => setShowDiscovery(false)} />}
     </>
   )
 }
@@ -209,13 +209,6 @@ function ToolsMenu() {
       )}
     </div>
   )
-}
-
-import DiscoveryWizard from './components/DiscoveryWizard'
-import PrefsDialog from './components/PrefsDialog'
-
-function DiscoveryOverlay({ onClose }: { onClose: () => void }) {
-  return <DiscoveryWizard onClose={onClose} />
 }
 
 export default function App() {

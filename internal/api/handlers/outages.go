@@ -27,7 +27,7 @@ func (h *OutageHandler) List(c *gin.Context) {
 
 	outages, err := h.database.ListOutages(c.Request.Context(), limit)
 	if err != nil {
-		internalError(c, "", err)
+		internalError(c, "database", err)
 		return
 	}
 	if outages == nil {

@@ -52,7 +52,7 @@ func (h *DiscoveryHandler) Scan(c *gin.Context) {
 
 	results, err := h.scanner.Scan(c.Request.Context(), req.CIDR)
 	if err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 		return
 	}
 

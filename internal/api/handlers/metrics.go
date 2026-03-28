@@ -52,7 +52,7 @@ func (h *MetricHandler) Query(c *gin.Context) {
 
 	metrics, err := h.database.QueryMetrics(c.Request.Context(), deviceID, metricName, from, to)
 	if err != nil {
-		internalError(c, "", err)
+		internalError(c, "database", err)
 		return
 	}
 
