@@ -20,7 +20,7 @@ func APIKeyAuth(apiKey string) gin.HandlerFunc {
 		}
 
 		if subtle.ConstantTimeCompare([]byte(key), []byte(apiKey)) != 1 {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid API key",
 			})
 			return

@@ -93,7 +93,8 @@ export default function Logs() {
             ))
         )}
 
-        {/* Syslog messages */}
+        {/* Syslog messages — syslog fields (hostname, tag, message) are rendered as JSX text
+            children, which React auto-escapes, so no XSS risk from untrusted device data. */}
         {!loading && !error && tab === 'syslog' && (
           syslog.length === 0
             ? <div className="text-gray-400 p-2">No syslog messages. Enable the syslog server in Preferences → Syslog.</div>
