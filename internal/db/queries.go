@@ -560,3 +560,51 @@ func (d *DB) SaveSettings(ctx context.Context, s ServerSettings) error {
 	}
 	return nil
 }
+
+// ── Syslog ─────────────────────────────────────────────────────────────────────
+
+// InsertSyslogMessage stores a received syslog message.
+func (d *DB) InsertSyslogMessage(ctx context.Context, msg SyslogMessage) error {
+	_, err := d.conn.ExecContext(ctx,
+		`INSERT INTO syslog_messages
+		 (received_at, facility, severity, hostname, tag, message, raw_data, source_ip)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		msg.ReceivedAt, msg.Facility, msg.Severity,
+		msg.Hostname, msg.Tag, msg.Message, msg.RawData, msg.SourceIP,
+	)
+	if err != nil {
+		return fmt.Errorf("insert syslog message: %w", err)
+	}
+	return nil
+}
+
+// ListSyslogMessages returns the most recent syslog messages, newest first.
+// limit is clamped to [1, 1000].
+func (d *DB) ListSyslogMessages(ctx context.Context, limit int) ([]SyslogMessage, error) {
+	if limit <= 0 || limit > 1000 {
+		limit = 500
+	}
+	rows, err := d.conn.QueryContext(ctx,
+		`SELECT id, received_at, facility, severity, hostname, tag, message, raw_data, source_ip
+		 FROM syslog_messages
+		 ORDER BY received_at DESC
+		 LIMIT ?`, limit,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list syslog messages: %w", err)
+	}
+	defer rows.Close()
+
+	var msgs []SyslogMessage
+	for rows.Next() {
+		var m SyslogMessage
+		if err := rows.Scan(
+			&m.ID, &m.ReceivedAt, &m.Facility, &m.Severity,
+			&m.Hostname, &m.Tag, &m.Message, &m.RawData, &m.SourceIP,
+		); err != nil {
+			return nil, fmt.Errorf("scan syslog message: %w", err)
+		}
+		msgs = append(msgs, m)
+	}
+	return msgs, rows.Err()
+}

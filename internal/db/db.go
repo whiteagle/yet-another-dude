@@ -151,6 +151,19 @@ func (d *DB) Migrate() error {
 			key TEXT PRIMARY KEY,
 			value TEXT NOT NULL
 		)`,
+		`CREATE TABLE IF NOT EXISTS syslog_messages (
+			id         INTEGER PRIMARY KEY AUTOINCREMENT,
+			received_at DATETIME NOT NULL,
+			facility   INTEGER NOT NULL DEFAULT 0,
+			severity   INTEGER NOT NULL DEFAULT 6,
+			hostname   TEXT,
+			tag        TEXT,
+			message    TEXT,
+			raw_data   TEXT,
+			source_ip  TEXT
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_syslog_time ON syslog_messages(received_at DESC)`,
+		`CREATE INDEX IF NOT EXISTS idx_syslog_hostname ON syslog_messages(hostname, received_at DESC)`,
 	}
 
 	for i, m := range migrations {

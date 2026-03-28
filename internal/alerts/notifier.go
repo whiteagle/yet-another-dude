@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/smtp"
+	"strconv"
 	"time"
 
 	"github.com/whiteagle/yet-another-dude/internal/db"
@@ -72,6 +74,59 @@ func (n *EmailNotifier) Notify(_ context.Context, event db.AlertEvent, rule db.A
 		return fmt.Errorf("send email to %s: %w", rule.NotifyEmail, err)
 	}
 	return nil
+}
+
+// DBEmailNotifier reads SMTP settings from the database on each call so that
+// configuration changes take effect immediately without restarting the server.
+// It is a no-op when PrimarySMTP is not configured.
+type DBEmailNotifier struct {
+	db *db.DB
+}
+
+// NewDBEmailNotifier creates a DBEmailNotifier backed by the given database.
+func NewDBEmailNotifier(database *db.DB) *DBEmailNotifier {
+	return &DBEmailNotifier{db: database}
+}
+
+// Notify sends an email alert using the SMTP settings currently in the database.
+func (n *DBEmailNotifier) Notify(ctx context.Context, event db.AlertEvent, rule db.AlertRule) error {
+	if rule.NotifyEmail == "" {
+		return nil
+	}
+
+	settings, err := n.db.GetSettings(ctx)
+	if err != nil {
+		return fmt.Errorf("get smtp settings: %w", err)
+	}
+	if settings.PrimarySMTP == "" {
+		slog.Debug("SMTP not configured, skipping email notification", "rule", rule.ID)
+		return nil
+	}
+
+	// PrimarySMTP may be "host" or "host:port".
+	host, portStr, splitErr := net.SplitHostPort(settings.PrimarySMTP)
+	if splitErr != nil {
+		// No port specified — default to 25.
+		host = settings.PrimarySMTP
+		portStr = "25"
+	}
+	port, _ := strconv.Atoi(portStr)
+	if port == 0 {
+		port = 25
+	}
+
+	from := settings.SMTPFrom
+	if from == "" {
+		from = "yad@" + host
+	}
+
+	var auth smtp.Auth
+	if settings.SMTPUsername != "" {
+		auth = smtp.PlainAuth("", settings.SMTPUsername, settings.SMTPPassword, host)
+	}
+
+	en := NewEmailNotifier(host, port, from, auth)
+	return en.Notify(ctx, event, rule)
 }
 
 // WebhookNotifier sends alert notifications via HTTP webhook.
