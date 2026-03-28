@@ -253,7 +253,10 @@ func (d *DB) ListLinks(ctx context.Context) ([]Link, error) {
 func (d *DB) UpdateLinkTraffic(ctx context.Context, id string, rxBps, txBps int64) error {
 	_, err := d.conn.ExecContext(ctx,
 		`UPDATE links SET rx_bps=?, tx_bps=? WHERE id=?`, rxBps, txBps, id)
-	return err
+	if err != nil {
+		return fmt.Errorf("update link traffic: %w", err)
+	}
+	return nil
 }
 
 func (d *DB) DeleteLink(ctx context.Context, id string) error {
