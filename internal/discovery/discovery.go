@@ -231,9 +231,8 @@ func parseRTT(output string) time.Duration {
 
 	rest := output[idx+5:]
 	var val float64
-	fmt.Sscanf(rest, "%f", &val)
-	if val > 0 {
-		return time.Duration(val * float64(time.Millisecond))
+	if _, err := fmt.Sscanf(rest, "%f", &val); err != nil || val <= 0 {
+		return 0
 	}
-	return 0
+	return time.Duration(val * float64(time.Millisecond))
 }
