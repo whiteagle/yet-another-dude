@@ -34,7 +34,7 @@ type CreateAlertRequest struct {
 func (h *AlertHandler) ListRules(c *gin.Context) {
 	rules, err := h.database.ListAlertRules(c.Request.Context())
 	if err != nil {
-		internalError(c, "", err)
+		internalError(c, "database", err)
 		return
 	}
 	if rules == nil {
@@ -63,7 +63,7 @@ func (h *AlertHandler) CreateRule(c *gin.Context) {
 	}
 
 	if err := h.database.CreateAlertRule(c.Request.Context(), rule); err != nil {
-		internalError(c, "", err)
+		internalError(c, "database", err)
 		return
 	}
 
@@ -81,7 +81,7 @@ func (h *AlertHandler) History(c *gin.Context) {
 
 	events, err := h.database.ListAlertHistory(c.Request.Context(), limit)
 	if err != nil {
-		internalError(c, "", err)
+		internalError(c, "database", err)
 		return
 	}
 	if events == nil {

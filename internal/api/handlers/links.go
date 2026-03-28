@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,14 +10,12 @@ import (
 	"github.com/whiteagle/yet-another-dude/internal/db"
 )
 
-type LinkHandler struct {
-	database *db.DB
-}
+// LinkHandler handles topology link CRUD operations.
+type LinkHandler struct{ database *db.DB }
 
-func NewLinkHandler(database *db.DB) *LinkHandler {
-	return &LinkHandler{database: database}
-}
+func NewLinkHandler(database *db.DB) *LinkHandler { return &LinkHandler{database: database} }
 
+// CreateLinkRequest is the request body for creating a topology link.
 type CreateLinkRequest struct {
 	DeviceID      string  `json:"device_id" binding:"required"`
 	PeerDeviceID  *string `json:"peer_device_id"`
@@ -28,7 +27,7 @@ type CreateLinkRequest struct {
 func (h *LinkHandler) List(c *gin.Context) {
 	links, err := h.database.ListLinks(c.Request.Context())
 	if err != nil {
-		internalError(c, "", err)
+		internalError(c, "list links", err)
 		return
 	}
 	if links == nil {
@@ -48,7 +47,6 @@ func (h *LinkHandler) Create(c *gin.Context) {
 	if lt == "" {
 		lt = db.LinkTypeUnknown
 	}
-
 	link := db.Link{
 		ID:            uuid.New().String(),
 		DeviceID:      req.DeviceID,
@@ -58,9 +56,8 @@ func (h *LinkHandler) Create(c *gin.Context) {
 		LinkType:      lt,
 		SpeedMbps:     req.SpeedMbps,
 	}
-
 	if err := h.database.CreateLink(c.Request.Context(), link); err != nil {
-		internalError(c, "", err)
+		internalError(c, "create link", err)
 		return
 	}
 	c.JSON(http.StatusCreated, link)
@@ -69,7 +66,11 @@ func (h *LinkHandler) Create(c *gin.Context) {
 func (h *LinkHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	if err := h.database.DeleteLink(c.Request.Context(), id); err != nil {
-		internalError(c, "", err)
+		if errors.Is(err, db.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "link not found"})
+			return
+		}
+		internalError(c, "delete link", err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"deleted": id})

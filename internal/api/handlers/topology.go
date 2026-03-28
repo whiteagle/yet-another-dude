@@ -22,7 +22,7 @@ func NewTopologyHandler(database *db.DB) *TopologyHandler {
 func (h *TopologyHandler) Get(c *gin.Context) {
 	nodes, err := h.database.GetTopologyNodes(c.Request.Context())
 	if err != nil {
-		internalError(c, "", err)
+		internalError(c, "database", err)
 		return
 	}
 	if nodes == nil {
@@ -45,7 +45,7 @@ func (h *TopologyHandler) Save(c *gin.Context) {
 	}
 
 	if err := h.database.SaveTopologyNodes(c.Request.Context(), req.Nodes); err != nil {
-		internalError(c, "", err)
+		internalError(c, "database", err)
 		return
 	}
 

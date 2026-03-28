@@ -92,9 +92,12 @@ func (d *DB) UpdateDevice(ctx context.Context, dev Device) error {
 	if err != nil {
 		return fmt.Errorf("update device: %w", err)
 	}
-	rows, _ := result.RowsAffected()
-	if rows == 0 {
-		return fmt.Errorf("device not found: %s", dev.ID)
+	n, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("update device rows affected: %w", err)
+	}
+	if n == 0 {
+		return ErrNotFound
 	}
 	return nil
 }
@@ -104,9 +107,12 @@ func (d *DB) DeleteDevice(ctx context.Context, id string) error {
 	if err != nil {
 		return fmt.Errorf("delete device: %w", err)
 	}
-	rows, _ := result.RowsAffected()
-	if rows == 0 {
-		return fmt.Errorf("device not found: %s", id)
+	n, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("delete device rows affected: %w", err)
+	}
+	if n == 0 {
+		return ErrNotFound
 	}
 	return nil
 }
@@ -192,8 +198,18 @@ func (d *DB) UpdateServiceStatus(ctx context.Context, id string, status ServiceS
 }
 
 func (d *DB) DeleteService(ctx context.Context, id string) error {
-	_, err := d.conn.ExecContext(ctx, `DELETE FROM services WHERE id = ?`, id)
-	return err
+	result, err := d.conn.ExecContext(ctx, `DELETE FROM services WHERE id = ?`, id)
+	if err != nil {
+		return fmt.Errorf("delete service: %w", err)
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("delete service rows affected: %w", err)
+	}
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 // ── Links ─────────────────────────────────────────────────────────────────────
@@ -238,8 +254,18 @@ func (d *DB) UpdateLinkTraffic(ctx context.Context, id string, rxBps, txBps int6
 }
 
 func (d *DB) DeleteLink(ctx context.Context, id string) error {
-	_, err := d.conn.ExecContext(ctx, `DELETE FROM links WHERE id = ?`, id)
-	return err
+	result, err := d.conn.ExecContext(ctx, `DELETE FROM links WHERE id = ?`, id)
+	if err != nil {
+		return fmt.Errorf("delete link: %w", err)
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("delete link rows affected: %w", err)
+	}
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 // ── Outages ───────────────────────────────────────────────────────────────────

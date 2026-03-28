@@ -196,8 +196,14 @@ func (h *DeviceHandler) Update(c *gin.Context) {
 	if req.Status != "" {
 		existing.Status = db.DeviceStatus(req.Status)
 	}
+	// IsRouterOS is a bool — always apply it from the request
+	existing.IsRouterOS = req.IsRouterOS
 
 	if err := h.database.UpdateDevice(c.Request.Context(), *existing); err != nil {
+		if errors.Is(err, db.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "device not found"})
+			return
+		}
 		internalError(c, "update device", err)
 		return
 	}
