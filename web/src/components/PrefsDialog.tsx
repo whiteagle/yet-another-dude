@@ -164,6 +164,7 @@ export default function PrefsDialog({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState(0)
   const [s, setS] = useState<ServerSettings>(DEFAULTS)
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
@@ -171,7 +172,10 @@ export default function PrefsDialog({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     getSettings()
       .then(setS)
-      .catch(() => setS(DEFAULTS))
+      .catch(() => {
+        setLoadFailed(true)
+        setS(DEFAULTS)
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -187,8 +191,8 @@ export default function PrefsDialog({ onClose }: { onClose: () => void }) {
       await saveSettings(s)
       setSaved(true)
       onClose()
-    } catch (e: any) {
-      setError(e.message ?? 'Save failed')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Save failed')
     } finally {
       setSaving(false)
     }
@@ -200,8 +204,8 @@ export default function PrefsDialog({ onClose }: { onClose: () => void }) {
     try {
       await saveSettings(s)
       setSaved(true)
-    } catch (e: any) {
-      setError(e.message ?? 'Save failed')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Save failed')
     } finally {
       setSaving(false)
     }
@@ -287,8 +291,8 @@ export default function PrefsDialog({ onClose }: { onClose: () => void }) {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: '#d4d0c8',
         }}>
-          <span style={{ fontSize: 11, color: saved ? '#006600' : '#cc0000' }}>
-            {error || (saved ? 'Settings saved.' : '')}
+          <span style={{ fontSize: 11, color: (error || loadFailed) ? '#cc0000' : '#006600' }}>
+            {error || (loadFailed ? 'Could not load settings — showing defaults.' : (saved ? 'Settings saved.' : ''))}
           </span>
           <div style={{ display: 'flex', gap: 6 }}>
             <WinBtn onClick={handleOK} disabled={saving}>OK</WinBtn>

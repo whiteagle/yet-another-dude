@@ -13,12 +13,13 @@ export default function Services() {
   const [services, setServices] = useState<Service[]>([])
   const [devices, setDevices] = useState<Device[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState('all')
 
   useEffect(() => {
     Promise.all([listServices(), listDevices()])
       .then(([svcs, devs]) => { setServices(svcs); setDevices(devs) })
-      .catch(console.error)
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load services'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -52,6 +53,8 @@ export default function Services() {
       <div className="flex-1 overflow-auto p-1">
         {loading ? (
           <div className="text-[12px] text-gray-500 p-2">Loading…</div>
+        ) : error ? (
+          <div className="text-[12px] text-red-600 p-2">Error: {error}</div>
         ) : (
           <div className="border border-[#808080] bg-white text-[12px]">
             <table className="w-full border-collapse">

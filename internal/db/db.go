@@ -147,6 +147,7 @@ func (d *DB) Migrate() error {
 			triggered_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_alert_history_rule ON alert_history(rule_id, triggered_at)`,
+		`CREATE INDEX IF NOT EXISTS idx_alert_history_time ON alert_history(triggered_at DESC)`,
 		`CREATE TABLE IF NOT EXISTS settings (
 			key TEXT PRIMARY KEY,
 			value TEXT NOT NULL

@@ -71,7 +71,11 @@ func (s *Server) setupRoutes() {
 				return
 			}
 			defer f.Close()
-			data, _ := io.ReadAll(f)
+			data, err := io.ReadAll(f)
+			if err != nil {
+				c.Status(http.StatusInternalServerError)
+				return
+			}
 			c.Data(http.StatusOK, "text/html; charset=utf-8", data)
 		}
 
@@ -84,7 +88,11 @@ func (s *Server) setupRoutes() {
 				return
 			}
 			defer f.Close()
-			data, _ := io.ReadAll(f)
+			data, err := io.ReadAll(f)
+			if err != nil {
+				c.Status(http.StatusInternalServerError)
+				return
+			}
 			mime := mimeByExt(path)
 			c.Data(http.StatusOK, mime, data)
 		})

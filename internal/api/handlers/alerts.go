@@ -50,6 +50,16 @@ func (h *AlertHandler) CreateRule(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if err := validateThreshold(req.Threshold); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if req.NotifyEmail != "" {
+		if err := validateStringLen("notify_email", req.NotifyEmail, 254); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
 
 	rule := db.AlertRule{
 		ID:            uuid.New().String(),

@@ -45,6 +45,12 @@ func (h *DiscoveryHandler) Scan(c *gin.Context) {
 		return
 	}
 
+	if req.SNMPCommunity != "" {
+		if err := validateStringLen("snmp_community", req.SNMPCommunity, 256); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
 	community := req.SNMPCommunity
 	if community == "" {
 		community = "public"

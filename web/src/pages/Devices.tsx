@@ -68,6 +68,8 @@ function FilterSelect({
 export default function Devices() {
   const [devices, setDevices] = useState<Device[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [addError, setAddError] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('list')
   const [showAdd, setShowAdd] = useState(false)
   const [showDiscovery, setShowDiscovery] = useState(false)
@@ -78,9 +80,10 @@ export default function Devices() {
 
   const load = async () => {
     try {
+      setError(null)
       setDevices(await listDevices())
     } catch (err) {
-      console.error('Failed to load devices:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load devices')
     } finally {
       setLoading(false)
     }
@@ -90,11 +93,12 @@ export default function Devices() {
 
   const handleAdd = async (data: CreateDeviceRequest) => {
     try {
+      setAddError(null)
       await createDevice(data)
       setShowAdd(false)
       await load()
     } catch (err) {
-      console.error('Failed to create device:', err)
+      setAddError(err instanceof Error ? err.message : 'Failed to create device')
     }
   }
 
@@ -186,8 +190,15 @@ export default function Devices() {
             <AddDeviceDialog onSubmit={handleAdd} onCancel={() => setShowAdd(false)} />
           )}
 
+          {addError && (
+            <div className="text-[11px] text-red-600 bg-red-50 border border-red-300 px-2 py-1 mb-1">
+              {addError}
+            </div>
+          )}
           {loading ? (
             <div className="text-[12px] text-gray-500 p-2">Loading…</div>
+          ) : error ? (
+            <div className="text-[12px] text-red-600 p-2">Error: {error}</div>
           ) : tab === 'list' ? (
             <DeviceList
               devices={filtered}

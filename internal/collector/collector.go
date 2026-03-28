@@ -127,7 +127,11 @@ func (c *Collector) pollDevice(ctx context.Context, dev db.Device) {
 
 		// Send notifications for triggered alerts
 		if c.cfg.Notifier != nil && len(evalResult.Triggered) > 0 {
-			rules, _ := c.cfg.DB.ListAlertRulesForDevice(ctx, dev.ID)
+			rules, err := c.cfg.DB.ListAlertRulesForDevice(ctx, dev.ID)
+			if err != nil {
+				slog.Error("failed to load alert rules for notification", "device", dev.ID, "error", err)
+				return
+			}
 			ruleMap := make(map[string]db.AlertRule)
 			for _, r := range rules {
 				ruleMap[r.ID] = r

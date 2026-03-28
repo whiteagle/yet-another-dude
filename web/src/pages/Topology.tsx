@@ -8,6 +8,8 @@ export default function Topology() {
   const [links, setLinks] = useState<Link[]>([])
   const [positions, setPositions] = useState<TopologyNode[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -17,7 +19,7 @@ export default function Topology() {
         setLinks(lnks)
         setPositions(topo)
       } catch (err) {
-        console.error('Failed to load topology:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load topology')
       } finally {
         setLoading(false)
       }
@@ -29,8 +31,9 @@ export default function Topology() {
     try {
       await saveTopology(nodes)
       setPositions(nodes)
+      setSaveError(null)
     } catch (err) {
-      console.error('Failed to save topology:', err)
+      setSaveError(err instanceof Error ? err.message : 'Failed to save topology')
     }
   }, [])
 
@@ -42,8 +45,22 @@ export default function Topology() {
     )
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full text-[12px] text-red-600">
+        Error: {error}
+      </div>
+    )
+  }
+
   return (
-    <div className="h-full">
+    <div className="h-full relative">
+      {saveError && (
+        <div className="absolute top-1 left-1/2 -translate-x-1/2 z-50 bg-red-100 border border-red-400
+          text-red-700 text-[11px] px-3 py-1 shadow">
+          Save failed: {saveError}
+        </div>
+      )}
       <TopologyMap devices={devices} links={links} positions={positions} onSave={handleSave} />
     </div>
   )

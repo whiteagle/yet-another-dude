@@ -194,6 +194,10 @@ func (h *DeviceHandler) Update(c *gin.Context) {
 		existing.Username = req.Username
 	}
 	if req.Status != "" {
+		if err := validateDeviceStatus(req.Status); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		existing.Status = db.DeviceStatus(req.Status)
 	}
 	// IsRouterOS is a bool — always apply it from the request
