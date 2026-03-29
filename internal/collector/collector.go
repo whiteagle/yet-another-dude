@@ -128,7 +128,7 @@ func (c *Collector) pollDevice(ctx context.Context, dev db.Device) {
 
 	// Evaluate alerts
 	if c.cfg.AlertEngine != nil {
-		evalResult, err := c.cfg.AlertEngine.Evaluate(ctx, dev.ID, result.Metrics)
+		evalResult, err := c.cfg.AlertEngine.Evaluate(ctx, dev.ID, dev.Name, result.Metrics)
 		if err != nil {
 			slog.Error("alert evaluation failed", "device", dev.ID, "error", err)
 			return

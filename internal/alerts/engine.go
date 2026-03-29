@@ -26,10 +26,15 @@ type EvaluateResult struct {
 }
 
 // Evaluate checks metrics against all applicable alert rules for a device.
-func (e *Engine) Evaluate(ctx context.Context, deviceID string, metrics map[string]float64) (*EvaluateResult, error) {
+func (e *Engine) Evaluate(ctx context.Context, deviceID, deviceName string, metrics map[string]float64) (*EvaluateResult, error) {
 	rules, err := e.database.ListAlertRulesForDevice(ctx, deviceID)
 	if err != nil {
 		return nil, fmt.Errorf("list rules for device %s: %w", deviceID, err)
+	}
+
+	label := deviceName
+	if label == "" {
+		label = deviceID[:8]
 	}
 
 	result := &EvaluateResult{}
@@ -45,7 +50,7 @@ func (e *Engine) Evaluate(ctx context.Context, deviceID string, metrics map[stri
 				RuleID:      rule.ID,
 				DeviceID:    deviceID,
 				Value:       value,
-				Message:     formatAlertMessage(rule, deviceID, value),
+				Message:     formatAlertMessage(rule, label, value),
 				TriggeredAt: time.Now(),
 			}
 
@@ -89,7 +94,7 @@ func shouldTrigger(condition db.AlertCondition, value, threshold float64) bool {
 }
 
 // formatAlertMessage creates a human-readable alert message.
-func formatAlertMessage(rule db.AlertRule, deviceID string, value float64) string {
+func formatAlertMessage(rule db.AlertRule, deviceLabel string, value float64) string {
 	condStr := ""
 	switch rule.Condition {
 	case db.AlertConditionGT:
@@ -101,5 +106,5 @@ func formatAlertMessage(rule db.AlertRule, deviceID string, value float64) strin
 	}
 
 	return fmt.Sprintf("Device %s: %s %s threshold %.2f (current: %.2f)",
-		deviceID, rule.Metric, condStr, rule.Threshold, value)
+		deviceLabel, rule.Metric, condStr, rule.Threshold, value)
 }
