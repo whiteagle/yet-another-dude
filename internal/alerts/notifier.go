@@ -203,7 +203,12 @@ type WebhookPayload struct {
 	TriggeredAt time.Time `json:"triggered_at"`
 }
 
+// webhookMaxRetries is the number of additional attempts after the first failure.
+const webhookMaxRetries = 3
+
 // Notify sends a webhook POST request with the alert event.
+// Transient failures (network errors, 5xx) are retried up to webhookMaxRetries
+// times with exponential backoff (1s, 2s, 4s). Client errors (4xx) are not retried.
 func (n *WebhookNotifier) Notify(ctx context.Context, event db.AlertEvent, rule db.AlertRule) error {
 	if rule.NotifyWebhook == "" {
 		return nil
@@ -222,24 +227,45 @@ func (n *WebhookNotifier) Notify(ctx context.Context, event db.AlertEvent, rule 
 		return fmt.Errorf("marshal webhook payload: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, rule.NotifyWebhook, bytes.NewReader(body))
-	if err != nil {
-		return fmt.Errorf("create webhook request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "YAD-AlertNotifier/1.0")
+	var lastErr error
+	backoff := time.Second
+	for attempt := 0; attempt <= webhookMaxRetries; attempt++ {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return fmt.Errorf("webhook cancelled after %d attempts: %w", attempt, ctx.Err())
+			case <-time.After(backoff):
+				backoff *= 2
+			}
+		}
 
-	resp, err := n.client.Do(req)
-	if err != nil {
-		return fmt.Errorf("webhook POST to %s: %w", rule.NotifyWebhook, err)
-	}
-	defer resp.Body.Close()
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, rule.NotifyWebhook, bytes.NewReader(body))
+		if err != nil {
+			return fmt.Errorf("create webhook request: %w", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("User-Agent", "YAD-AlertNotifier/1.0")
 
-	if resp.StatusCode >= 400 {
-		return fmt.Errorf("webhook returned status %d", resp.StatusCode)
-	}
+		resp, err := n.client.Do(req)
+		if err != nil {
+			lastErr = fmt.Errorf("webhook POST attempt %d: %w", attempt+1, err)
+			slog.Warn("webhook delivery failed, retrying", "attempt", attempt+1, "url", rule.NotifyWebhook, "error", err)
+			continue
+		}
+		resp.Body.Close()
 
-	return nil
+		if resp.StatusCode >= 500 {
+			lastErr = fmt.Errorf("webhook returned %d on attempt %d", resp.StatusCode, attempt+1)
+			slog.Warn("webhook server error, retrying", "attempt", attempt+1, "status", resp.StatusCode)
+			continue
+		}
+		if resp.StatusCode >= 400 {
+			// Client error — do not retry
+			return fmt.Errorf("webhook returned client error %d", resp.StatusCode)
+		}
+		return nil // success
+	}
+	return fmt.Errorf("webhook failed after %d attempts: %w", webhookMaxRetries+1, lastErr)
 }
 
 // MultiNotifier dispatches notifications to multiple notifiers.

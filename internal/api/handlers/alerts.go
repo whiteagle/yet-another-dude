@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -88,7 +89,7 @@ func (h *AlertHandler) DeleteRule(c *gin.Context) {
 		return
 	}
 	if err := h.database.DeleteAlertRule(c.Request.Context(), id); err != nil {
-		if err.Error() == "alert rule not found" {
+		if errors.Is(err, db.ErrNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "alert rule not found"})
 			return
 		}
@@ -100,11 +101,15 @@ func (h *AlertHandler) DeleteRule(c *gin.Context) {
 
 // History returns recent alert events.
 func (h *AlertHandler) History(c *gin.Context) {
+	const maxLimit = 5000
 	limit := 100
 	if limitStr := c.Query("limit"); limitStr != "" {
 		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
 			limit = parsed
 		}
+	}
+	if limit > maxLimit {
+		limit = maxLimit
 	}
 
 	events, err := h.database.ListAlertHistory(c.Request.Context(), limit)

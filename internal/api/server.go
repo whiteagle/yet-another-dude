@@ -56,6 +56,14 @@ func (s *Server) setupRoutes() {
 	s.router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+	s.router.GET("/api/v1/summary", func(c *gin.Context) {
+		summary, err := s.cfg.DB.GetHealthSummary(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get summary"})
+			return
+		}
+		c.JSON(http.StatusOK, summary)
+	})
 
 	v1 := s.router.Group("/api/v1")
 	if s.cfg.APIKey != "" {

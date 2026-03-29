@@ -15,11 +15,12 @@ import (
 
 // Config holds collector configuration.
 type Config struct {
-	DB           *db.DB
-	Poller       *snmp.Poller
-	AlertEngine  *alerts.Engine
-	Notifier     alerts.Notifier
-	PollInterval time.Duration
+	DB               *db.DB
+	Poller           *snmp.Poller
+	AlertEngine      *alerts.Engine
+	Notifier         alerts.Notifier
+	PollInterval     time.Duration
+	MetricRetainDays int // 0 → use default (90 days)
 }
 
 // Collector runs periodic SNMP polling for all devices.
@@ -41,6 +42,11 @@ func (c *Collector) Run(ctx context.Context) {
 	ticker := time.NewTicker(c.cfg.PollInterval)
 	defer ticker.Stop()
 
+	// Purge old metrics on startup, then once every 24h.
+	c.purgeMetrics(ctx)
+	purgeTicker := time.NewTicker(24 * time.Hour)
+	defer purgeTicker.Stop()
+
 	// Initial poll
 	c.pollAll(ctx)
 
@@ -51,7 +57,25 @@ func (c *Collector) Run(ctx context.Context) {
 			return
 		case <-ticker.C:
 			c.pollAll(ctx)
+		case <-purgeTicker.C:
+			c.purgeMetrics(ctx)
 		}
+	}
+}
+
+// purgeMetrics deletes metrics beyond the configured retention window.
+func (c *Collector) purgeMetrics(ctx context.Context) {
+	retainDays := c.cfg.MetricRetainDays
+	if retainDays <= 0 {
+		retainDays = 90
+	}
+	n, err := c.cfg.DB.PurgeOldMetrics(ctx, retainDays)
+	if err != nil {
+		slog.Error("failed to purge old metrics", "error", err)
+		return
+	}
+	if n > 0 {
+		slog.Info("purged old metrics", "rows", n, "retain_days", retainDays)
 	}
 }
 

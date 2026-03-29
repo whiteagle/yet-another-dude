@@ -100,11 +100,12 @@ func main() {
 
 	// Metric collector + alert evaluator
 	coll := collector.New(collector.Config{
-		DB:           database,
-		Poller:       poller,
-		AlertEngine:  alertEngine,
-		Notifier:     notifier,
-		PollInterval: time.Duration(settings.ProbeIntervalSec) * time.Second,
+		DB:               database,
+		Poller:           poller,
+		AlertEngine:      alertEngine,
+		Notifier:         notifier,
+		PollInterval:     time.Duration(settings.ProbeIntervalSec) * time.Second,
+		MetricRetainDays: settings.ChartValueKeepDays,
 	})
 	go coll.Run(bgCtx)
 

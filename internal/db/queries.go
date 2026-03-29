@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+
 // ── Devices ──────────────────────────────────────────────────────────────────
 
 func (d *DB) CreateDevice(ctx context.Context, dev Device) error {
@@ -372,6 +373,66 @@ func (d *DB) InsertMetrics(ctx context.Context, metrics []Metric) error {
 	return tx.Commit()
 }
 
+// HealthSummary contains a quick overview of the monitored estate.
+type HealthSummary struct {
+	DevicesTotal   int `json:"devices_total"`
+	DevicesUp      int `json:"devices_up"`
+	DevicesDown    int `json:"devices_down"`
+	DevicesUnknown int `json:"devices_unknown"`
+	AlertsActive   int `json:"alerts_active_24h"` // events in the last 24h
+	OutagesActive  int `json:"outages_active"`
+	SyslogLast24h  int `json:"syslog_last_24h"`
+}
+
+// GetHealthSummary returns a single-query overview of the monitored estate.
+func (d *DB) GetHealthSummary(ctx context.Context) (HealthSummary, error) {
+	var s HealthSummary
+
+	row := d.conn.QueryRowContext(ctx, `
+		SELECT
+		  COUNT(*)                                                   AS total,
+		  SUM(CASE WHEN status='up'      THEN 1 ELSE 0 END)        AS up,
+		  SUM(CASE WHEN status='down'    THEN 1 ELSE 0 END)        AS down,
+		  SUM(CASE WHEN status NOT IN ('up','down') THEN 1 ELSE 0 END) AS unknown
+		FROM devices`)
+	if err := row.Scan(&s.DevicesTotal, &s.DevicesUp, &s.DevicesDown, &s.DevicesUnknown); err != nil {
+		return s, fmt.Errorf("health summary devices: %w", err)
+	}
+
+	row = d.conn.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM alert_history WHERE triggered_at >= datetime('now', '-1 day')`)
+	if err := row.Scan(&s.AlertsActive); err != nil {
+		return s, fmt.Errorf("health summary alerts: %w", err)
+	}
+
+	row = d.conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM outages WHERE status='active'`)
+	if err := row.Scan(&s.OutagesActive); err != nil {
+		return s, fmt.Errorf("health summary outages: %w", err)
+	}
+
+	row = d.conn.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM syslog_messages WHERE received_at >= datetime('now', '-1 day')`)
+	if err := row.Scan(&s.SyslogLast24h); err != nil {
+		return s, fmt.Errorf("health summary syslog: %w", err)
+	}
+
+	return s, nil
+}
+
+// PurgeOldMetrics deletes metrics older than retentionDays. Returns the number of rows deleted.
+func (d *DB) PurgeOldMetrics(ctx context.Context, retentionDays int) (int64, error) {
+	if retentionDays <= 0 {
+		retentionDays = 90
+	}
+	cutoff := time.Now().AddDate(0, 0, -retentionDays)
+	res, err := d.conn.ExecContext(ctx, `DELETE FROM metrics WHERE timestamp < ?`, cutoff)
+	if err != nil {
+		return 0, fmt.Errorf("purge old metrics: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	return n, nil
+}
+
 func (d *DB) QueryMetrics(ctx context.Context, deviceID string, metricName string, from, to time.Time) ([]Metric, error) {
 	query := `SELECT id, device_id, name, value, timestamp FROM metrics
 		WHERE device_id = ? AND timestamp BETWEEN ? AND ?`
@@ -474,7 +535,7 @@ func (d *DB) DeleteAlertRule(ctx context.Context, id string) error {
 	}
 	n, _ := res.RowsAffected()
 	if n == 0 {
-		return fmt.Errorf("alert rule not found")
+		return ErrNotFound
 	}
 	return nil
 }
