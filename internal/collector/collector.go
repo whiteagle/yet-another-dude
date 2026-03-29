@@ -100,6 +100,15 @@ func (c *Collector) pollDevice(ctx context.Context, dev db.Device) {
 		slog.Error("failed to update device status", "device", dev.ID, "error", err)
 	}
 
+	// Enrich device metadata from SNMP poll results (no-op if already set)
+	if result.SysDescr != "" || result.SysName != "" {
+		vendor := snmp.DetectVendor(result.SysDescr)
+		isRouterOS := vendor == "MikroTik"
+		if err := c.cfg.DB.UpdateDeviceMetadata(ctx, dev.ID, vendor, result.SysName, isRouterOS); err != nil {
+			slog.Error("failed to update device metadata", "device", dev.ID, "error", err)
+		}
+	}
+
 	// Store metrics
 	var metrics []db.Metric
 	for name, value := range result.Metrics {

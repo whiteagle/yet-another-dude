@@ -65,15 +65,16 @@ func (h *DiscoveryHandler) Scan(c *gin.Context) {
 		snmpVer = snmp.SNMPv2c
 	}
 
-	results, err := h.scanner.Scan(c.Request.Context(), req.CIDR)
+	// Use a background context for the scan — the gin request context is
+	// cancelled as soon as the handler returns (which happens immediately),
+	// and we don't want that to abort the ongoing background scan.
+	bgCtx := context.Background()
+
+	results, err := h.scanner.Scan(bgCtx, req.CIDR)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 		return
 	}
-
-	// Use a background context — the gin request context is cancelled as soon
-	// as the handler returns (which is intentional: we respond immediately).
-	bgCtx := context.Background()
 
 	go func() {
 		for result := range results {
@@ -105,6 +106,7 @@ func (h *DiscoveryHandler) Scan(c *gin.Context) {
 					dev.Name = info.SysName
 				}
 				dev.Vendor = info.Vendor
+				dev.IsRouterOS = info.Vendor == "MikroTik"
 			}
 
 			if err := h.database.CreateDevice(bgCtx, dev); err != nil {

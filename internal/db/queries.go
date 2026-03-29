@@ -117,6 +117,23 @@ func (d *DB) DeleteDevice(ctx context.Context, id string) error {
 	return nil
 }
 
+// UpdateDeviceMetadata sets vendor, system_name and is_routeros only when the current value is empty/false.
+// This lets polling enrich devices without overwriting manual edits.
+func (d *DB) UpdateDeviceMetadata(ctx context.Context, id, vendor, systemName string, isRouterOS bool) error {
+	_, err := d.conn.ExecContext(ctx,
+		`UPDATE devices SET
+		  vendor      = CASE WHEN vendor      = '' OR vendor      IS NULL THEN ? ELSE vendor END,
+		  system_name = CASE WHEN system_name = '' OR system_name IS NULL THEN ? ELSE system_name END,
+		  is_routeros = CASE WHEN is_routeros = 0 OR  is_routeros IS NULL THEN ? ELSE is_routeros END
+		 WHERE id = ?`,
+		vendor, systemName, isRouterOS, id,
+	)
+	if err != nil {
+		return fmt.Errorf("update device metadata: %w", err)
+	}
+	return nil
+}
+
 func (d *DB) UpdateDeviceStatus(ctx context.Context, id string, status DeviceStatus, lastSeen time.Time) error {
 	_, err := d.conn.ExecContext(ctx,
 		`UPDATE devices SET status=?, last_seen=? WHERE id=?`,
