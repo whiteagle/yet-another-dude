@@ -5,19 +5,31 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/whiteagle/yet-another-dude/internal/db"
 )
 
+// alertKey uniquely identifies an active alert (one per rule × device pair).
+type alertKey struct {
+	ruleID   string
+	deviceID string
+}
+
 // Engine evaluates alert rules against incoming metrics.
+// It fires an alert event only on the OK→FIRING transition and clears the
+// state once the metric drops back below the threshold, so a single
+// outstanding condition does not flood the event log every poll cycle.
 type Engine struct {
 	database *db.DB
+	mu       sync.Mutex
+	firing   map[alertKey]struct{} // currently-firing alerts
 }
 
 // NewEngine creates a new alert Engine.
 func NewEngine(database *db.DB) *Engine {
-	return &Engine{database: database}
+	return &Engine{database: database, firing: make(map[alertKey]struct{})}
 }
 
 // EvaluateResult contains the outcome of evaluating metrics against alert rules.
@@ -39,13 +51,25 @@ func (e *Engine) Evaluate(ctx context.Context, deviceID, deviceName string, metr
 
 	result := &EvaluateResult{}
 
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
 	for _, rule := range rules {
 		value, exists := metrics[rule.Metric]
 		if !exists {
 			continue
 		}
 
-		if shouldTrigger(rule.Condition, value, rule.Threshold) {
+		key := alertKey{ruleID: rule.ID, deviceID: deviceID}
+		wasFiring := false
+		if _, ok := e.firing[key]; ok {
+			wasFiring = true
+		}
+
+		nowFiring := shouldTrigger(rule.Condition, value, rule.Threshold)
+
+		if nowFiring && !wasFiring {
+			// OK → FIRING transition: record event
 			event := db.AlertEvent{
 				RuleID:      rule.ID,
 				DeviceID:    deviceID,
@@ -59,13 +83,22 @@ func (e *Engine) Evaluate(ctx context.Context, deviceID, deviceName string, metr
 				continue
 			}
 
+			e.firing[key] = struct{}{}
 			result.Triggered = append(result.Triggered, event)
-			slog.Warn("alert triggered",
+			slog.Warn("ALERT",
+				"rule_id", rule.ID,
+				"device_id", deviceID,
+				"message", event.Message,
+				"value", value,
+			)
+		} else if !nowFiring && wasFiring {
+			// FIRING → OK transition: clear state (no event, just log)
+			delete(e.firing, key)
+			slog.Info("alert resolved",
 				"rule", rule.ID,
 				"device", deviceID,
 				"metric", rule.Metric,
 				"value", value,
-				"threshold", rule.Threshold,
 			)
 		}
 	}

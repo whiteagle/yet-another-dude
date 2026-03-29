@@ -144,6 +144,7 @@ func setupRoutes(rg *gin.RouterGroup, cfg ServerConfig) {
 	ah := handlers.NewAlertHandler(cfg.DB)
 	rg.GET("/alerts", ah.ListRules)
 	rg.POST("/alerts", ah.CreateRule)
+	rg.DELETE("/alerts/:id", ah.DeleteRule)
 	rg.GET("/alerts/history", ah.History)
 
 	// Settings

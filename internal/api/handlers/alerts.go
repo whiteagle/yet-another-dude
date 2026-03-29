@@ -80,6 +80,24 @@ func (h *AlertHandler) CreateRule(c *gin.Context) {
 	c.JSON(http.StatusCreated, rule)
 }
 
+// DeleteRule removes an alert rule by ID.
+func (h *AlertHandler) DeleteRule(c *gin.Context) {
+	id := c.Param("id")
+	if _, err := uuid.Parse(id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	if err := h.database.DeleteAlertRule(c.Request.Context(), id); err != nil {
+		if err.Error() == "alert rule not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "alert rule not found"})
+			return
+		}
+		internalError(c, "database", err)
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
 // History returns recent alert events.
 func (h *AlertHandler) History(c *gin.Context) {
 	limit := 100

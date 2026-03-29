@@ -467,6 +467,18 @@ func (d *DB) CreateAlertRule(ctx context.Context, rule AlertRule) error {
 	return nil
 }
 
+func (d *DB) DeleteAlertRule(ctx context.Context, id string) error {
+	res, err := d.conn.ExecContext(ctx, `DELETE FROM alert_rules WHERE id = ?`, id)
+	if err != nil {
+		return fmt.Errorf("delete alert rule: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("alert rule not found")
+	}
+	return nil
+}
+
 func (d *DB) ListAlertRules(ctx context.Context) ([]AlertRule, error) {
 	rows, err := d.conn.QueryContext(ctx,
 		`SELECT id, device_id, metric, condition, threshold, enabled, notify_email, notify_webhook
