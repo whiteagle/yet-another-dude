@@ -46,7 +46,11 @@ func (e *Engine) Evaluate(ctx context.Context, deviceID, deviceName string, metr
 
 	label := deviceName
 	if label == "" {
-		label = deviceID[:8]
+		if len(deviceID) >= 8 {
+			label = deviceID[:8]
+		} else {
+			label = deviceID
+		}
 	}
 
 	result := &EvaluateResult{}
