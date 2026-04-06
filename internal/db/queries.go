@@ -202,14 +202,22 @@ func (d *DB) UpdateServiceStatus(ctx context.Context, id string, status ServiceS
 	now := time.Now()
 	_, err := d.conn.ExecContext(ctx,
 		`UPDATE services SET status=?, problem=?,
-		 time_last_up = CASE WHEN ? = 'ok' THEN ? ELSE time_last_up END,
+		 time_last_up   = CASE WHEN ? = 'ok'  THEN ? ELSE time_last_up   END,
 		 time_last_down = CASE WHEN ? != 'ok' THEN ? ELSE time_last_down END,
-		 probes_down = CASE WHEN ? != 'ok' THEN probes_down + 1 ELSE 0 END
+		 probes_down    = CASE WHEN ? != 'ok' THEN probes_down + 1 ELSE 0 END,
+		 time_up_total   = CASE WHEN ? = 'ok'  AND time_last_up   IS NOT NULL
+		                        THEN time_up_total   + CAST((julianday(?) - julianday(time_last_up))   * 86400 AS INTEGER)
+		                        ELSE time_up_total   END,
+		 time_down_total = CASE WHEN ? != 'ok' AND time_last_down IS NOT NULL
+		                        THEN time_down_total + CAST((julianday(?) - julianday(time_last_down)) * 86400 AS INTEGER)
+		                        ELSE time_down_total END
 		 WHERE id=?`,
 		status, problem,
 		status, now,
 		status, now,
 		status,
+		status, now,
+		status, now,
 		id,
 	)
 	if err != nil {
@@ -390,10 +398,10 @@ func (d *DB) GetHealthSummary(ctx context.Context) (HealthSummary, error) {
 
 	row := d.conn.QueryRowContext(ctx, `
 		SELECT
-		  COUNT(*)                                                   AS total,
-		  SUM(CASE WHEN status='up'      THEN 1 ELSE 0 END)        AS up,
-		  SUM(CASE WHEN status='down'    THEN 1 ELSE 0 END)        AS down,
-		  SUM(CASE WHEN status NOT IN ('up','down') THEN 1 ELSE 0 END) AS unknown
+		  COUNT(*)                                                          AS total,
+		  COALESCE(SUM(CASE WHEN status='up'      THEN 1 ELSE 0 END), 0)  AS up,
+		  COALESCE(SUM(CASE WHEN status='down'    THEN 1 ELSE 0 END), 0)  AS down,
+		  COALESCE(SUM(CASE WHEN status NOT IN ('up','down') THEN 1 ELSE 0 END), 0) AS unknown
 		FROM devices`)
 	if err := row.Scan(&s.DevicesTotal, &s.DevicesUp, &s.DevicesDown, &s.DevicesUnknown); err != nil {
 		return s, fmt.Errorf("health summary devices: %w", err)
