@@ -19,26 +19,30 @@ export default function DeviceList({ devices, onDelete, onSelect }: DeviceListPr
 
   if (devices.length === 0) {
     return (
-      <div className="flex items-center justify-center h-16 text-[12px] text-gray-500 bg-white border border-[#808080]">
+      <div
+        className="flex items-center justify-center h-16 text-[12px]"
+        style={{ color: 'var(--text-muted)', background: 'var(--bg-base)', border: '1px solid var(--chrome-border)' }}
+      >
         No devices found. Use Discover to scan, or add manually.
       </div>
     )
   }
 
   return (
-    <div className="border border-[#808080] overflow-auto bg-white" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+    <div className="overflow-auto" style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', maxHeight: 'calc(100vh - 220px)' }}>
       <table className="w-full border-collapse text-[12px]">
         <thead>
-          <tr className="bg-[#d4d0c8] sticky top-0 z-10">
+          <tr className="sticky top-0 z-10" style={{ background: 'var(--chrome-bg)' }}>
             {['Name', 'Addresses', 'MAC', 'Type', 'Status', 'Services Down', 'Last Seen'].map((col) => (
               <th
                 key={col}
-                className="text-left px-2 py-[2px] font-normal text-gray-900 border-r border-b border-[#808080] whitespace-nowrap select-none"
+                className="text-left px-2 py-[2px] font-normal whitespace-nowrap select-none"
+                style={{ color: 'var(--text-primary)', borderRight: '1px solid var(--chrome-border)', borderBottom: '1px solid var(--chrome-border)' }}
               >
                 {col}
               </th>
             ))}
-            <th className="w-6 border-b border-[#808080]" />
+            <th className="w-6" style={{ borderBottom: '1px solid var(--chrome-border)' }} />
           </tr>
         </thead>
         <tbody>
@@ -49,9 +53,14 @@ export default function DeviceList({ devices, onDelete, onSelect }: DeviceListPr
                 key={dev.id}
                 onClick={() => handleRow(dev)}
                 onDoubleClick={() => onSelect?.(dev)}
-                className={`cursor-default border-b border-[#e0e0e0] ${
-                  isSelected ? 'bg-[#0066cc] text-white' : 'hover:bg-[#cce8ff]'
-                }`}
+                className="cursor-default"
+                style={{
+                  borderBottom: '1px solid var(--border-muted)',
+                  backgroundColor: isSelected ? 'var(--select-bg)' : undefined,
+                  color: isSelected ? '#fff' : 'var(--text-primary)',
+                }}
+                onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--select-hover)' }}
+                onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = '' }}
               >
                 {/* Name with colored status square */}
                 <td className="px-2 py-[1px] flex items-center gap-1 min-w-[140px]">
@@ -84,9 +93,8 @@ export default function DeviceList({ devices, onDelete, onSelect }: DeviceListPr
                   <button
                     onClick={(e) => { e.stopPropagation(); onDelete(dev.id) }}
                     title="Delete"
-                    className={`text-[10px] px-1 rounded hover:bg-red-100 hover:text-red-700 ${
-                      isSelected ? 'text-white/70' : 'text-gray-400'
-                    }`}
+                    className="text-[10px] px-1 rounded hover:bg-red-100 hover:text-red-700"
+                    style={{ color: isSelected ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)' }}
                   >
                     ✕
                   </button>

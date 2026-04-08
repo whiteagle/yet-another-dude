@@ -79,16 +79,20 @@ function TreeNode({ item, depth = 0 }: TreeNodeProps) {
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick() } }}
         aria-expanded={hasChildren ? open : undefined}
         aria-current={isActive ? 'page' : undefined}
-        className={`flex items-center gap-0.5 py-[1px] cursor-pointer select-none text-[12px]
-          ${isActive ? 'bg-[#0066cc] text-white' : 'text-gray-900 hover:bg-[#cce8ff]'}
-        `}
-        style={{ paddingLeft: `${4 + depth * 12}px` }}
+        className="flex items-center gap-0.5 py-[1px] cursor-pointer select-none text-[12px]"
+        style={{
+          paddingLeft: `${4 + depth * 12}px`,
+          backgroundColor: isActive ? 'var(--select-bg)' : undefined,
+          color: isActive ? '#fff' : 'var(--text-primary)',
+        }}
+        onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'var(--select-hover)' }}
+        onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = '' }}
       >
         {hasChildren ? (
           open ? (
-            <ChevronDown className="w-3 h-3 shrink-0 text-gray-500" />
+            <ChevronDown className="w-3 h-3 shrink-0" style={{ color: 'var(--text-secondary)' }} />
           ) : (
-            <ChevronRight className="w-3 h-3 shrink-0 text-gray-500" />
+            <ChevronRight className="w-3 h-3 shrink-0" style={{ color: 'var(--text-secondary)' }} />
           )
         ) : (
           <span className="w-3 h-3 shrink-0 inline-block" />
@@ -106,7 +110,7 @@ function TreeNode({ item, depth = 0 }: TreeNodeProps) {
   )
 }
 
-// Windows XP–style button
+// Windows XP-style button
 function WinBtn({ children, onClick, title, className = '' }: {
   children: React.ReactNode
   onClick?: () => void
@@ -117,9 +121,15 @@ function WinBtn({ children, onClick, title, className = '' }: {
     <button
       onClick={onClick}
       title={title}
-      className={`px-2 py-[1px] bg-[#d4d0c8] border border-[#808080] text-[11px] hover:bg-[#ece9d8]
-        shadow-[inset_1px_1px_#fff,inset_-1px_-1px_#808080] active:shadow-[inset_1px_1px_#808080,inset_-1px_-1px_#fff]
+      className={`px-2 py-[1px] text-[11px]
         ${className}`}
+      style={{
+        background: 'var(--chrome-bg)',
+        border: '1px solid var(--chrome-border)',
+        color: 'var(--text-primary)',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--chrome-hover)' }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--chrome-bg)' }}
     >
       {children}
     </button>
@@ -135,7 +145,10 @@ function Toolbar() {
 
   return (
     <>
-      <div className="bg-[#d4d0c8] border-b border-[#808080] flex items-center gap-[2px] px-1 py-[2px] shrink-0">
+      <div
+        className="flex items-center gap-[2px] px-1 py-[2px] shrink-0"
+        style={{ background: 'var(--chrome-bg)', borderBottom: '1px solid var(--chrome-border)' }}
+      >
         <WinBtn title="Add device" onClick={() => navigate('/devices')}>+</WinBtn>
         <WinBtn title="Remove">−</WinBtn>
         <WinBtn title="Copy">⎘</WinBtn>
@@ -143,22 +156,22 @@ function Toolbar() {
         <WinBtn title="Lock">🔒</WinBtn>
         <WinBtn title="Drag mode">✥</WinBtn>
         <WinBtn title="Select mode">↖</WinBtn>
-        <div className="w-px h-4 bg-[#808080] mx-0.5" />
+        <div className="w-px h-4 mx-0.5" style={{ background: 'var(--chrome-border)' }} />
         <WinBtn onClick={() => navigate('/settings')}>Settings</WinBtn>
         <WinBtn onClick={() => setShowDiscovery(true)}>Discover</WinBtn>
         <ToolsMenu />
-        <div className="w-px h-4 bg-[#808080] mx-0.5" />
+        <div className="w-px h-4 mx-0.5" style={{ background: 'var(--chrome-border)' }} />
         <WinBtn title="Find device">🔍</WinBtn>
         {isTopology && <WinBtn title="Align in rows">⠿</WinBtn>}
         {isTopology && <WinBtn title="Align in circle">◎</WinBtn>}
         <div className="flex-1" />
-        <span className="text-[11px] text-gray-600 mr-0.5">Layer:</span>
-        <select className="text-[11px] border border-[#808080] bg-white h-5 px-0.5">
+        <span className="text-[11px] mr-0.5" style={{ color: 'var(--text-secondary)' }}>Layer:</span>
+        <select className="text-[11px] h-5 px-0.5" style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
           <option>links</option>
           <option>dependencies</option>
         </select>
-        <span className="text-[11px] text-gray-600 ml-1 mr-0.5">Zoom:</span>
-        <select className="text-[11px] border border-[#808080] bg-white h-5 px-0.5 w-16">
+        <span className="text-[11px] ml-1 mr-0.5" style={{ color: 'var(--text-secondary)' }}>Zoom:</span>
+        <select className="text-[11px] h-5 px-0.5 w-16" style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
           <option>100%</option>
           <option>75%</option>
           <option>50%</option>
@@ -194,16 +207,26 @@ function ToolsMenu() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 z-50 bg-[#ece9d8] border border-[#808080]
-            shadow-[2px_2px_4px_rgba(0,0,0,0.3)] min-w-[140px] py-0.5 text-[12px]">
+          <div
+            className="absolute top-full left-0 z-50 min-w-[140px] py-0.5 text-[12px]"
+            style={{
+              background: 'var(--chrome-panel)',
+              border: '1px solid var(--chrome-border)',
+              boxShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+              color: 'var(--text-primary)',
+            }}
+          >
             {items.map((item) =>
               item.label === '─' ? (
-                <div key="sep" className="border-t border-[#808080] my-0.5" />
+                <div key="sep" className="my-0.5" style={{ borderTop: '1px solid var(--chrome-border)' }} />
               ) : (
                 <div
                   key={item.label}
                   onClick={() => { item.action(); setOpen(false) }}
-                  className="px-4 py-[2px] hover:bg-[#0066cc] hover:text-white cursor-default"
+                  className="px-4 py-[2px] cursor-default"
+                  style={{ color: 'var(--text-primary)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--select-bg)'; e.currentTarget.style.color = '#fff' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-primary)' }}
                 >
                   {item.label}
                 </div>
@@ -220,24 +243,39 @@ export default function App() {
   const [showPrefs, setShowPrefs] = useState(false)
 
   return (
-    <div className="flex flex-col h-screen bg-[#ece9d8] text-gray-900 font-[Tahoma,Arial,sans-serif]">
+    <div className="flex flex-col h-screen font-[Tahoma,Arial,sans-serif]" style={{ background: 'var(--chrome-panel)', color: 'var(--text-primary)' }}>
       {/* Top header bar */}
-      <header className="bg-[#d4d0c8] border-b border-[#808080] flex items-center gap-1 px-1 py-[2px] shrink-0">
+      <header
+        className="flex items-center gap-1 px-1 py-[2px] shrink-0"
+        style={{ background: 'var(--chrome-bg)', borderBottom: '1px solid var(--chrome-border)' }}
+      >
         <WinBtn onClick={() => setShowPrefs(true)}>Preferences</WinBtn>
-        <div className="flex items-center gap-1 px-2 py-[1px] bg-[#d4d0c8] border border-[#808080]
-          shadow-[inset_1px_1px_#fff,inset_-1px_-1px_#808080] text-[11px]">
-          <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+        <div
+          className="flex items-center gap-1 px-2 py-[1px] text-[11px]"
+          style={{
+            background: 'var(--chrome-bg)',
+            border: '1px solid var(--chrome-border)',
+            color: 'var(--text-primary)',
+          }}
+        >
+          <span className="w-2 h-2 rounded-full inline-block" style={{ background: 'var(--status-up)' }} />
           Local Server
         </div>
         <WinBtn>Help</WinBtn>
         <div className="flex-1" />
-        <span className="text-[10px] text-gray-500 italic pr-2">Yet Another Dude v0.1</span>
+        <span className="text-[10px] italic pr-2" style={{ color: 'var(--text-muted)' }}>Yet Another Dude v0.1</span>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar: Contents tree */}
-        <aside className="w-44 bg-white border-r border-[#808080] flex flex-col shrink-0 overflow-hidden">
-          <div className="bg-[#d4d0c8] border-b border-[#808080] px-2 py-[1px] text-[11px] font-bold">
+        <aside
+          className="w-44 flex flex-col shrink-0 overflow-hidden"
+          style={{ background: 'var(--bg-base)', borderRight: '1px solid var(--chrome-border)' }}
+        >
+          <div
+            className="px-2 py-[1px] text-[11px] font-bold"
+            style={{ background: 'var(--chrome-bg)', borderBottom: '1px solid var(--chrome-border)', color: 'var(--text-primary)' }}
+          >
             Contents /
           </div>
           <div className="flex-1 overflow-y-auto py-0.5">
@@ -245,8 +283,11 @@ export default function App() {
               <TreeNode key={item.label} item={item} />
             ))}
           </div>
-          <div className="h-24 border-t border-gray-300 bg-[#f0f0f0] flex items-center justify-center shrink-0">
-            <span className="text-[10px] text-gray-400">[ mini map ]</span>
+          <div
+            className="h-24 flex items-center justify-center shrink-0"
+            style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-highlight)' }}
+          >
+            <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>[ mini map ]</span>
           </div>
         </aside>
 
@@ -256,8 +297,19 @@ export default function App() {
           <Toolbar />
 
           {/* Pane tab */}
-          <div className="bg-[#d4d0c8] border-b border-[#808080] flex items-end px-1 shrink-0 h-5">
-            <div className="bg-white border border-b-white border-[#808080] px-3 py-0 text-[11px] text-gray-800 -mb-px">
+          <div
+            className="flex items-end px-1 shrink-0 h-5"
+            style={{ background: 'var(--chrome-bg)', borderBottom: '1px solid var(--chrome-border)' }}
+          >
+            <div
+              className="px-3 py-0 text-[11px] -mb-px"
+              style={{
+                background: 'var(--bg-base)',
+                border: '1px solid var(--chrome-border)',
+                borderBottom: '1px solid var(--bg-base)',
+                color: 'var(--text-primary)',
+              }}
+            >
               ▼ Local
             </div>
           </div>
@@ -279,11 +331,14 @@ export default function App() {
       </div>
 
       {/* Status bar */}
-      <footer className="bg-[#d4d0c8] border-t border-[#808080] flex items-center px-2 text-[11px] shrink-0 h-5">
-        <span className="text-green-700 font-semibold mr-4">Connected</span>
-        <span className="text-gray-600">Client: rx 0 bps / tx 0 bps</span>
+      <footer
+        className="flex items-center px-2 text-[11px] shrink-0 h-5"
+        style={{ background: 'var(--chrome-bg)', borderTop: '1px solid var(--chrome-border)' }}
+      >
+        <span className="font-semibold mr-4" style={{ color: 'var(--status-up)' }}>Connected</span>
+        <span style={{ color: 'var(--text-secondary)' }}>Client: rx 0 bps / tx 0 bps</span>
         <div className="flex-1" />
-        <span className="text-gray-600">Server: rx 0 bps / tx 0 bps</span>
+        <span style={{ color: 'var(--text-secondary)' }}>Server: rx 0 bps / tx 0 bps</span>
       </footer>
 
       {showPrefs && <PrefsDialog onClose={() => setShowPrefs(false)} />}

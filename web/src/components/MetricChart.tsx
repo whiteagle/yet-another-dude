@@ -29,7 +29,7 @@ export default function MetricChart({
   deviceId,
   metricName,
   title,
-  color = '#34d399',
+  color = 'var(--chart-default-color)',
   hours = 1,
 }: MetricChartProps) {
   const [data, setData] = useState<ChartDataPoint[]>([])
@@ -66,41 +66,48 @@ export default function MetricChart({
 
   if (loading) {
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 h-48 flex items-center justify-center">
-        <span className="text-gray-500 text-sm">Loading {title}...</span>
+      <div
+        className="rounded-lg p-4 h-48 flex items-center justify-center"
+        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+      >
+        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading {title}...</span>
       </div>
     )
   }
 
   if (data.length === 0) {
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 h-48 flex items-center justify-center">
-        <span className="text-gray-500 text-sm">No data for {title}</span>
+      <div
+        className="rounded-lg p-4 h-48 flex items-center justify-center"
+        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+      >
+        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>No data for {title}</span>
       </div>
     )
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-      <h4 className="text-sm font-medium text-gray-400 mb-3">{title}</h4>
+    <div className="rounded-lg p-4" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+      <h4 className="text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>{title}</h4>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
           <XAxis
             dataKey="time"
-            stroke="#6b7280"
+            stroke="var(--chart-axis)"
             fontSize={11}
             tickLine={false}
           />
-          <YAxis stroke="#6b7280" fontSize={11} tickLine={false} />
+          <YAxis stroke="var(--chart-axis)" fontSize={11} tickLine={false} />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#1f2937',
-              border: '1px solid #374151',
+              backgroundColor: 'var(--chart-tooltip-bg)',
+              border: '1px solid var(--chart-tooltip-border)',
               borderRadius: '6px',
               fontSize: '12px',
+              color: 'var(--text-primary)',
             }}
-            labelStyle={{ color: '#9ca3af' }}
+            labelStyle={{ color: 'var(--chart-tooltip-label)' }}
           />
           <Line
             type="monotone"

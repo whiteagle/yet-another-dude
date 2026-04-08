@@ -39,7 +39,7 @@ export default function Topology() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full text-[12px] text-gray-500">
+      <div className="flex items-center justify-center h-full text-[12px]" style={{ color: 'var(--text-muted)' }}>
         Loading topology…
       </div>
     )
@@ -47,7 +47,7 @@ export default function Topology() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full text-[12px] text-red-600">
+      <div className="flex items-center justify-center h-full text-[12px]" style={{ color: 'var(--status-down)' }}>
         Error: {error}
       </div>
     )
@@ -56,8 +56,14 @@ export default function Topology() {
   return (
     <div className="h-full relative">
       {saveError && (
-        <div className="absolute top-1 left-1/2 -translate-x-1/2 z-50 bg-red-100 border border-red-400
-          text-red-700 text-[11px] px-3 py-1 shadow">
+        <div
+          className="absolute top-1 left-1/2 -translate-x-1/2 z-50 text-[11px] px-3 py-1 shadow"
+          style={{
+            background: 'color-mix(in srgb, var(--status-down) 10%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--status-down) 30%, transparent)',
+            color: 'var(--status-down)',
+          }}
+        >
           Save failed: {saveError}
         </div>
       )}

@@ -22,13 +22,12 @@ function WinBtn({
     <button
       onClick={onClick}
       title={title}
-      className={`px-2 py-[1px] text-[11px] border select-none
-        ${
-          active
-            ? 'bg-[#ece9d8] border-[#808080] shadow-[inset_1px_1px_#808080,inset_-1px_-1px_#fff]'
-            : 'bg-[#d4d0c8] border-[#808080] shadow-[inset_1px_1px_#fff,inset_-1px_-1px_#808080] hover:bg-[#ece9d8]'
-        }
-        active:shadow-[inset_1px_1px_#808080,inset_-1px_-1px_#fff]`}
+      className="px-2 py-[1px] text-[11px] border select-none"
+      style={{
+        background: active ? 'var(--chrome-panel)' : 'var(--chrome-bg)',
+        borderColor: 'var(--chrome-border)',
+        color: 'var(--text-primary)',
+      }}
     >
       {children}
     </button>
@@ -49,11 +48,12 @@ function FilterSelect({
 }) {
   return (
     <div className="flex items-center gap-1">
-      <span className="text-[11px] text-gray-600">{label}:</span>
+      <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{label}:</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="text-[11px] border border-[#808080] bg-white h-5 px-0.5"
+        className="text-[11px] h-5 px-0.5"
+        style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}
       >
         {options.map((o) => (
           <option key={o} value={o}>
@@ -128,12 +128,15 @@ export default function Devices() {
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
-      <div className="bg-[#d4d0c8] border-b border-[#808080] flex items-center gap-[2px] px-1 py-[2px] shrink-0 flex-wrap gap-y-1">
+      <div
+        className="flex items-center gap-[2px] px-1 py-[2px] shrink-0 flex-wrap gap-y-1"
+        style={{ background: 'var(--chrome-bg)', borderBottom: '1px solid var(--chrome-border)' }}
+      >
         <WinBtn onClick={() => setShowAdd(true)} title="Add device">Add</WinBtn>
         <WinBtn title="Remove selected" onClick={() => selected && handleDelete(selected.id)}>Remove</WinBtn>
-        <div className="w-px h-4 bg-[#808080] mx-0.5" />
+        <div className="w-px h-4 mx-0.5" style={{ background: 'var(--chrome-border)' }} />
         <WinBtn onClick={() => setShowDiscovery(true)}>Discover</WinBtn>
-        <div className="w-px h-4 bg-[#808080] mx-0.5" />
+        <div className="w-px h-4 mx-0.5" style={{ background: 'var(--chrome-border)' }} />
         <FilterSelect
           label="Status"
           value={filterStatus}
@@ -147,31 +150,38 @@ export default function Devices() {
           onChange={setFilterType}
         />
         <div className="flex items-center gap-1 ml-1">
-          <span className="text-[11px] text-gray-600">Search:</span>
+          <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Search:</span>
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="text-[11px] border border-[#808080] bg-white h-5 px-1 w-28"
+            className="text-[11px] h-5 px-1 w-28"
+            style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}
             placeholder="name or IP…"
           />
         </div>
         <div className="flex-1" />
-        <span className="text-[11px] text-gray-500 pr-1">{filtered.length} devices</span>
+        <span className="text-[11px] pr-1" style={{ color: 'var(--text-muted)' }}>{filtered.length} devices</span>
       </div>
 
       {/* Tabs */}
-      <div className="bg-[#d4d0c8] border-b border-[#808080] flex items-end px-1 shrink-0 h-5">
+      <div
+        className="flex items-end px-1 shrink-0 h-5"
+        style={{ background: 'var(--chrome-bg)', borderBottom: '1px solid var(--chrome-border)' }}
+      >
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`px-3 py-0 text-[11px] border border-b-0 mr-[1px] select-none
-              ${
-                tab === t.key
-                  ? 'bg-white border-[#808080] text-gray-900 -mb-px relative z-10'
-                  : 'bg-[#d4d0c8] border-transparent text-gray-600 hover:bg-[#ece9d8]'
-              }`}
+            className="px-3 py-0 text-[11px] border border-b-0 mr-[1px] select-none"
+            style={{
+              background: tab === t.key ? 'var(--bg-base)' : 'var(--chrome-bg)',
+              borderColor: tab === t.key ? 'var(--chrome-border)' : 'transparent',
+              color: tab === t.key ? 'var(--text-primary)' : 'var(--text-secondary)',
+              marginBottom: tab === t.key ? -1 : 0,
+              position: tab === t.key ? 'relative' : undefined,
+              zIndex: tab === t.key ? 10 : 0,
+            }}
           >
             {t.label}
           </button>
@@ -191,14 +201,14 @@ export default function Devices() {
           )}
 
           {addError && (
-            <div className="text-[11px] text-red-600 bg-red-50 border border-red-300 px-2 py-1 mb-1">
+            <div className="text-[11px] px-2 py-1 mb-1" style={{ color: 'var(--status-down)', background: 'color-mix(in srgb, var(--status-down) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--status-down) 30%, transparent)' }}>
               {addError}
             </div>
           )}
           {loading ? (
-            <div className="text-[12px] text-gray-500 p-2">Loading…</div>
+            <div className="text-[12px] p-2" style={{ color: 'var(--text-muted)' }}>Loading…</div>
           ) : error ? (
-            <div className="text-[12px] text-red-600 p-2">Error: {error}</div>
+            <div className="text-[12px] p-2" style={{ color: 'var(--status-down)' }}>Error: {error}</div>
           ) : tab === 'list' ? (
             <DeviceList
               devices={filtered}
@@ -214,8 +224,11 @@ export default function Devices() {
 
         {/* Right panel: device details (only in list tab when device selected) */}
         {tab === 'list' && selected && (
-          <div className="w-56 shrink-0 border-l border-[#808080] bg-white overflow-y-auto p-2 text-[11px]">
-            <div className="font-bold text-[12px] mb-1 truncate">{selected.name}</div>
+          <div
+            className="w-56 shrink-0 overflow-y-auto p-2 text-[11px]"
+            style={{ borderLeft: '1px solid var(--chrome-border)', background: 'var(--bg-base)' }}
+          >
+            <div className="font-bold text-[12px] mb-1 truncate" style={{ color: 'var(--text-primary)' }}>{selected.name}</div>
             <table className="w-full">
               <tbody>
                 {(
@@ -235,23 +248,27 @@ export default function Devices() {
                     ['Last Seen', selected.last_seen ? new Date(selected.last_seen).toLocaleString() : '—'],
                   ] as [string, string][]
                 ).map(([k, v]) => (
-                    <tr key={k as string} className="border-b border-gray-100">
-                      <td className="text-gray-500 pr-1 py-[1px] whitespace-nowrap">{k}:</td>
-                      <td className="text-gray-900 py-[1px] truncate max-w-[110px]">{v as string}</td>
+                    <tr key={k as string} style={{ borderBottom: '1px solid var(--border-muted)' }}>
+                      <td className="pr-1 py-[1px] whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{k}:</td>
+                      <td className="py-[1px] truncate max-w-[110px]" style={{ color: 'var(--text-primary)' }}>{v as string}</td>
                     </tr>
                   ))}
               </tbody>
             </table>
             {selected.notes && (
-              <div className="mt-2 text-gray-500 italic border-t border-gray-200 pt-1">
+              <div className="mt-2 italic pt-1" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border-muted)' }}>
                 {selected.notes}
               </div>
             )}
             <div className="mt-2 flex gap-1">
               <button
                 onClick={() => handleDelete(selected.id)}
-                className="px-2 py-[1px] bg-[#d4d0c8] border border-[#808080] text-[10px]
-                  shadow-[inset_1px_1px_#fff,inset_-1px_-1px_#808080] hover:bg-[#ece9d8]"
+                className="px-2 py-[1px] text-[10px]"
+                style={{
+                  background: 'var(--chrome-bg)',
+                  border: '1px solid var(--chrome-border)',
+                  color: 'var(--text-primary)',
+                }}
               >
                 Delete
               </button>
@@ -270,21 +287,27 @@ function DeviceTypesTable({ devices }: { devices: Device[] }) {
     counts[d.type] = (counts[d.type] ?? 0) + 1
   }
   return (
-    <div className="border border-[#808080] bg-white text-[12px]">
+    <div className="text-[12px]" style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)' }}>
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-[#d4d0c8]">
-            <th className="text-left px-2 py-[2px] border-r border-b border-[#808080]">Device Type</th>
-            <th className="text-left px-2 py-[2px] border-b border-[#808080]">Count</th>
+          <tr style={{ background: 'var(--chrome-bg)' }}>
+            <th className="text-left px-2 py-[2px]" style={{ borderRight: '1px solid var(--chrome-border)', borderBottom: '1px solid var(--chrome-border)', color: 'var(--text-primary)' }}>Device Type</th>
+            <th className="text-left px-2 py-[2px]" style={{ borderBottom: '1px solid var(--chrome-border)', color: 'var(--text-primary)' }}>Count</th>
           </tr>
         </thead>
         <tbody>
           {Object.entries(counts)
             .sort(([, a], [, b]) => b - a)
             .map(([type, count]) => (
-              <tr key={type} className="border-b border-[#e0e0e0] hover:bg-[#cce8ff]">
-                <td className="px-2 py-[1px] capitalize">{type.replace(/_/g, ' ')}</td>
-                <td className="px-2 py-[1px]">{count}</td>
+              <tr
+                key={type}
+                style={{ borderBottom: '1px solid var(--border-muted)' }}
+                className="cursor-default"
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--select-hover)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '' }}
+              >
+                <td className="px-2 py-[1px] capitalize" style={{ color: 'var(--text-primary)' }}>{type.replace(/_/g, ' ')}</td>
+                <td className="px-2 py-[1px]" style={{ color: 'var(--text-primary)' }}>{count}</td>
               </tr>
             ))}
         </tbody>
@@ -297,27 +320,33 @@ function DeviceTypesTable({ devices }: { devices: Device[] }) {
 function MacMappingsTable({ devices }: { devices: Device[] }) {
   const withMac = devices.filter((d) => d.mac)
   return (
-    <div className="border border-[#808080] bg-white text-[12px]">
+    <div className="text-[12px]" style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)' }}>
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-[#d4d0c8]">
+          <tr style={{ background: 'var(--chrome-bg)' }}>
             {['MAC Address', 'Device', 'IP', 'Vendor'].map((h) => (
-              <th key={h} className="text-left px-2 py-[2px] border-r border-b border-[#808080]">{h}</th>
+              <th key={h} className="text-left px-2 py-[2px]" style={{ borderRight: '1px solid var(--chrome-border)', borderBottom: '1px solid var(--chrome-border)', color: 'var(--text-primary)' }}>{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {withMac.map((d) => (
-            <tr key={d.id} className="border-b border-[#e0e0e0] hover:bg-[#cce8ff]">
-              <td className="px-2 py-[1px] font-mono">{d.mac}</td>
-              <td className="px-2 py-[1px]">{d.name}</td>
-              <td className="px-2 py-[1px] font-mono">{d.ip}</td>
-              <td className="px-2 py-[1px]">{d.vendor || '—'}</td>
+            <tr
+              key={d.id}
+              style={{ borderBottom: '1px solid var(--border-muted)' }}
+              className="cursor-default"
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--select-hover)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '' }}
+            >
+              <td className="px-2 py-[1px] font-mono" style={{ color: 'var(--text-primary)' }}>{d.mac}</td>
+              <td className="px-2 py-[1px]" style={{ color: 'var(--text-primary)' }}>{d.name}</td>
+              <td className="px-2 py-[1px] font-mono" style={{ color: 'var(--text-primary)' }}>{d.ip}</td>
+              <td className="px-2 py-[1px]" style={{ color: 'var(--text-primary)' }}>{d.vendor || '—'}</td>
             </tr>
           ))}
           {withMac.length === 0 && (
             <tr>
-              <td colSpan={4} className="px-2 py-2 text-gray-500 text-center">
+              <td colSpan={4} className="px-2 py-2 text-center" style={{ color: 'var(--text-muted)' }}>
                 No MAC addresses recorded
               </td>
             </tr>
@@ -355,13 +384,13 @@ function AddDeviceDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-[#ece9d8] border border-[#808080] shadow-[2px_2px_8px_rgba(0,0,0,0.4)] w-80">
+      <div className="w-80" style={{ background: 'var(--chrome-panel)', border: '1px solid var(--chrome-border)', boxShadow: '2px 2px 8px rgba(0,0,0,0.4)' }}>
         {/* Title bar */}
-        <div className="bg-gradient-to-r from-[#0058e6] to-[#3c9aff] px-2 py-[2px] flex items-center">
+        <div className="px-2 py-[2px] flex items-center" style={{ background: `linear-gradient(to right, var(--titlebar-from), var(--titlebar-to))` }}>
           <span className="text-white text-[11px] font-bold flex-1">Add Device</span>
-          <button onClick={onCancel} className="text-white text-[11px] px-1 hover:bg-[#cc0000] rounded-sm">✕</button>
+          <button onClick={onCancel} className="text-white text-[11px] px-1 hover:bg-[var(--close-hover)] rounded-sm">✕</button>
         </div>
-        <form onSubmit={handle} className="p-3 space-y-2 text-[12px]">
+        <form onSubmit={handle} className="p-3 space-y-2 text-[12px]" style={{ color: 'var(--text-primary)' }}>
           {[
             { label: 'Name', value: name, set: setName, required: true },
             { label: 'IP Address', value: ip, set: setIp, required: true },
@@ -374,7 +403,8 @@ function AddDeviceDialog({
                 value={value}
                 onChange={(e) => set(e.target.value)}
                 required={required}
-                className="flex-1 border border-[#808080] px-1 py-0.5 text-[12px] bg-white focus:outline-none focus:border-[#0058e6]"
+                className="flex-1 px-1 py-0.5 text-[12px] focus:outline-none"
+                style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}
               />
             </div>
           ))}
@@ -383,7 +413,8 @@ function AddDeviceDialog({
             <select
               value={type}
               onChange={(e) => setType(e.target.value as DeviceType)}
-              className="flex-1 border border-[#808080] px-1 py-0.5 text-[12px] bg-white"
+              className="flex-1 px-1 py-0.5 text-[12px]"
+              style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}
             >
               {DEVICE_TYPES.map((t) => (
                 <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>
@@ -396,22 +427,23 @@ function AddDeviceDialog({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="flex-1 border border-[#808080] px-1 py-0.5 text-[12px] bg-white resize-none focus:outline-none"
+              className="flex-1 px-1 py-0.5 text-[12px] resize-none focus:outline-none"
+              style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}
             />
           </div>
-          <div className="flex justify-end gap-2 pt-1 border-t border-[#808080]">
+          <div className="flex justify-end gap-2 pt-1" style={{ borderTop: '1px solid var(--chrome-border)' }}>
             <button
               type="submit"
-              className="px-4 py-[2px] bg-[#d4d0c8] border border-[#808080] text-[11px]
-                shadow-[inset_1px_1px_#fff,inset_-1px_-1px_#808080] hover:bg-[#ece9d8]"
+              className="px-4 py-[2px] text-[11px]"
+              style={{ background: 'var(--chrome-bg)', border: '1px solid var(--chrome-border)', color: 'var(--text-primary)' }}
             >
               OK
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-[2px] bg-[#d4d0c8] border border-[#808080] text-[11px]
-                shadow-[inset_1px_1px_#fff,inset_-1px_-1px_#808080] hover:bg-[#ece9d8]"
+              className="px-4 py-[2px] text-[11px]"
+              style={{ background: 'var(--chrome-bg)', border: '1px solid var(--chrome-border)', color: 'var(--text-primary)' }}
             >
               Cancel
             </button>

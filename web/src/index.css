@@ -2,9 +2,137 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Light theme (default) ─────────────────────────────── */
+:root {
+  --bg-base:        #ffffff;
+  --bg-surface:     #f6f8fa;
+  --bg-elevated:    #eaeef2;
+  --bg-highlight:   #f0f3f6;
+  --border:         #d0d7de;
+  --border-muted:   #eaeef2;
+  --text-primary:   #1f2328;
+  --text-secondary: #656d76;
+  --text-muted:     #9198a1;
+  --accent:         #0969da;
+  --accent-hover:   #0550ae;
+  --status-up:      #1a7f37;
+  --status-down:    #d1242f;
+  --status-partial: #9a6700;
+  --status-unknown: #9198a1;
+  --status-acked:   #0969da;
+
+  /* XP-style chrome */
+  --chrome-bg:      #d4d0c8;
+  --chrome-border:  #808080;
+  --chrome-hover:   #ece9d8;
+  --chrome-panel:   #ece9d8;
+  --chrome-tab-inactive: #c0bdb4;
+  --chrome-input-border: #7f9db9;
+
+  /* Selection */
+  --select-bg:      #0066cc;
+  --select-hover:   #cce8ff;
+
+  /* Title bar gradient */
+  --titlebar-from:  #0058e6;
+  --titlebar-to:    #3c9aff;
+
+  /* Buttons */
+  --btn-primary-bg:    #1a7f37;
+  --btn-primary-hover: #15803d;
+  --btn-primary-text:  #ffffff;
+
+  /* Code */
+  --code-bg: #f6f8fa;
+
+  /* Close button */
+  --close-hover: #cc0000;
+
+  /* Progress bar */
+  --progress-bar:   #0058e6;
+
+  /* Scrollbar */
+  --scrollbar-track: var(--bg-surface);
+  --scrollbar-thumb: var(--border);
+
+  /* Chart colors */
+  --chart-grid:      #e5e7eb;
+  --chart-axis:      #6b7280;
+  --chart-tooltip-bg: #f9fafb;
+  --chart-tooltip-border: #d1d5db;
+  --chart-tooltip-label: #6b7280;
+  --chart-default-color: #34d399;
+}
+
+/* ── Dark theme ─────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-base:        #0d1117;
+    --bg-surface:     #161b22;
+    --bg-elevated:    #1c2128;
+    --bg-highlight:   #21262d;
+    --border:         #30363d;
+    --border-muted:   #21262d;
+    --text-primary:   #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted:     #484f58;
+    --accent:         #58a6ff;
+    --accent-hover:   #79c0ff;
+    --status-up:      #3fb950;
+    --status-down:    #f85149;
+    --status-partial: #d29922;
+    --status-unknown: #484f58;
+    --status-acked:   #58a6ff;
+
+    /* XP-style chrome — dark variant */
+    --chrome-bg:      #1c2128;
+    --chrome-border:  #30363d;
+    --chrome-hover:   #21262d;
+    --chrome-panel:   #161b22;
+    --chrome-tab-inactive: #21262d;
+    --chrome-input-border: #30363d;
+
+    /* Selection */
+    --select-bg:      #1f6feb;
+    --select-hover:   #161b22;
+
+    /* Title bar gradient */
+    --titlebar-from:  #1158c7;
+    --titlebar-to:    #2d7ad6;
+
+    /* Buttons */
+    --btn-primary-bg:    #238636;
+    --btn-primary-hover: #2ea043;
+    --btn-primary-text:  #ffffff;
+
+    /* Code */
+    --code-bg: #161b22;
+
+    /* Close button */
+    --close-hover: #cc0000;
+
+    /* Progress bar */
+    --progress-bar:   #1f6feb;
+
+    /* Scrollbar */
+    --scrollbar-track: var(--bg-surface);
+    --scrollbar-thumb: var(--border);
+
+    /* Chart colors */
+    --chart-grid:      #374151;
+    --chart-axis:      #6b7280;
+    --chart-tooltip-bg: #1f2937;
+    --chart-tooltip-border: #374151;
+    --chart-tooltip-label: #9ca3af;
+    --chart-default-color: #34d399;
+  }
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 .react-flow__node {
@@ -12,3 +140,30 @@ body {
   padding: 10px;
   font-size: 12px;
 }
+
+/* ── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ── Status utility classes (for color-mix transparency) ── */
+.status-up-bg    { background: color-mix(in srgb, var(--status-up) 10%, transparent); }
+.status-up-text  { color: var(--status-up); }
+.status-down-bg  { background: color-mix(in srgb, var(--status-down) 10%, transparent); }
+.status-down-text { color: var(--status-down); }
+.status-unknown-bg  { background: color-mix(in srgb, var(--status-unknown) 10%, transparent); }
+.status-unknown-text { color: var(--status-unknown); }

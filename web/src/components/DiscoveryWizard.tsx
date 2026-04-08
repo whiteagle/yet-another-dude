@@ -55,30 +55,35 @@ export default function DiscoveryWizard({ onClose }: DiscoveryWizardProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-[#ece9d8] border border-[#808080] shadow-[2px_2px_8px_rgba(0,0,0,0.4)] w-[420px]">
+      <div className="w-[420px]" style={{ background: 'var(--chrome-panel)', border: '1px solid var(--chrome-border)', boxShadow: '2px 2px 8px rgba(0,0,0,0.4)' }}>
         {/* Title bar */}
-        <div className="bg-gradient-to-r from-[#0058e6] to-[#3c9aff] px-2 py-[2px] flex items-center">
+        <div className="px-2 py-[2px] flex items-center" style={{ background: `linear-gradient(to right, var(--titlebar-from), var(--titlebar-to))` }}>
           <span className="text-white text-[11px] font-bold flex-1">Discover Devices</span>
-          <button onClick={onClose} className="text-white text-[11px] px-1 hover:bg-[#cc0000] rounded-sm">✕</button>
+          <button onClick={onClose} className="text-white text-[11px] px-1 hover:bg-[var(--close-hover)] rounded-sm">✕</button>
         </div>
 
         {/* Tab bar */}
-        <div className="bg-[#d4d0c8] border-b border-[#808080] flex items-end px-1 h-5">
+        <div className="flex items-end px-1 h-5" style={{ background: 'var(--chrome-bg)', borderBottom: '1px solid var(--chrome-border)' }}>
           {(['general', 'services', 'advanced'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-3 py-0 text-[11px] border border-b-0 mr-[1px] capitalize select-none
-                ${tab === t
-                  ? 'bg-[#ece9d8] border-[#808080] -mb-px z-10 relative'
-                  : 'bg-[#d4d0c8] border-transparent text-gray-600 hover:bg-[#ece9d8]'}`}
+              className="px-3 py-0 text-[11px] border border-b-0 mr-[1px] capitalize select-none"
+              style={{
+                background: tab === t ? 'var(--chrome-panel)' : 'var(--chrome-bg)',
+                borderColor: tab === t ? 'var(--chrome-border)' : 'transparent',
+                marginBottom: tab === t ? -1 : 0,
+                zIndex: tab === t ? 10 : 0,
+                position: tab === t ? 'relative' : undefined,
+                color: tab === t ? 'var(--text-primary)' : 'var(--text-secondary)',
+              }}
             >
               {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
         </div>
 
-        <div className="p-3 text-[12px] space-y-2 min-h-[200px]">
+        <div className="p-3 text-[12px] space-y-2 min-h-[200px]" style={{ color: 'var(--text-primary)' }}>
           {tab === 'general' && (
             <>
               <Row label="IP Range (CIDR)">
@@ -86,7 +91,8 @@ export default function DiscoveryWizard({ onClose }: DiscoveryWizardProps) {
                   value={cidr}
                   onChange={(e) => setCidr(e.target.value)}
                   disabled={scanning}
-                  className="flex-1 border border-[#808080] px-1 py-0.5 bg-white text-[12px] focus:outline-none disabled:bg-gray-100"
+                  className="flex-1 px-1 py-0.5 text-[12px] focus:outline-none disabled:opacity-60"
+                  style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}
                 />
               </Row>
               <Row label="SNMP Community">
@@ -94,7 +100,8 @@ export default function DiscoveryWizard({ onClose }: DiscoveryWizardProps) {
                   value={community}
                   onChange={(e) => setCommunity(e.target.value)}
                   disabled={scanning}
-                  className="flex-1 border border-[#808080] px-1 py-0.5 bg-white text-[12px] focus:outline-none disabled:bg-gray-100"
+                  className="flex-1 px-1 py-0.5 text-[12px] focus:outline-none disabled:opacity-60"
+                  style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}
                 />
               </Row>
               <Row label="SNMP Version">
@@ -102,7 +109,8 @@ export default function DiscoveryWizard({ onClose }: DiscoveryWizardProps) {
                   value={snmpVersion}
                   onChange={(e) => setSnmpVersion(Number(e.target.value))}
                   disabled={scanning}
-                  className="border border-[#808080] px-1 py-0.5 bg-white text-[12px]"
+                  className="px-1 py-0.5 text-[12px]"
+                  style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}
                 >
                   <option value={1}>v1</option>
                   <option value={2}>v2c</option>
@@ -136,8 +144,8 @@ export default function DiscoveryWizard({ onClose }: DiscoveryWizardProps) {
             </>
           )}
           {tab === 'services' && (
-            <div className="text-gray-500 text-[11px] p-2">
-              <p className="mb-2 font-semibold text-gray-700">Default probes added to discovered devices:</p>
+            <div className="text-[11px] p-2" style={{ color: 'var(--text-muted)' }}>
+              <p className="mb-2 font-semibold" style={{ color: 'var(--text-secondary)' }}>Default probes added to discovered devices:</p>
               {['ping (ICMP)', 'SNMP (UDP 161)', 'SSH (TCP 22)', 'HTTP (TCP 80)'].map((s) => (
                 <div key={s} className="flex items-center gap-1 mb-1">
                   <input type="checkbox" defaultChecked className="w-3 h-3" />
@@ -147,9 +155,9 @@ export default function DiscoveryWizard({ onClose }: DiscoveryWizardProps) {
             </div>
           )}
           {tab === 'advanced' && (
-            <div className="text-gray-500 text-[11px] p-2 space-y-2">
+            <div className="text-[11px] p-2 space-y-2" style={{ color: 'var(--text-muted)' }}>
               <Row label="Recursive hops">
-                <select className="border border-[#808080] px-1 py-0.5 bg-white text-[12px]" defaultValue="0">
+                <select className="px-1 py-0.5 text-[12px]" defaultValue="0" style={{ border: '1px solid var(--chrome-border)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
                   {[0, 1, 2, 3, 4, 5].map((n) => (
                     <option key={n} value={n}>{n}</option>
                   ))}
@@ -163,21 +171,21 @@ export default function DiscoveryWizard({ onClose }: DiscoveryWizardProps) {
         {/* Progress bar when scanning */}
         {(scanning || done) && (
           <div className="px-3 pb-2 space-y-1">
-            <div className="w-full bg-white border border-[#808080] h-4 relative">
+            <div className="w-full h-4 relative" style={{ background: 'var(--bg-base)', border: '1px solid var(--chrome-border)' }}>
               <div
-                className="h-full bg-[#0058e6] transition-all duration-300"
-                style={{ width: `${progress}%` }}
+                className="h-full transition-all duration-300"
+                style={{ width: `${progress}%`, background: 'var(--progress-bar)' }}
               />
               <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white mix-blend-difference">
                 {progress}%
               </span>
             </div>
-            <div className="flex justify-between text-[11px] text-gray-600">
+            <div className="flex justify-between text-[11px]" style={{ color: 'var(--text-secondary)' }}>
               <span>{status?.scanned ?? 0} / {status?.total ?? 0} hosts scanned</span>
               <span>{status?.found ?? 0} found</span>
             </div>
             {done && status && status.found > 0 && (
-              <div className="text-green-700 text-[11px] font-semibold">
+              <div className="text-[11px] font-semibold" style={{ color: 'var(--status-up)' }}>
                 Done — {status.found} device(s) discovered.
               </div>
             )}
@@ -185,31 +193,38 @@ export default function DiscoveryWizard({ onClose }: DiscoveryWizardProps) {
         )}
 
         {error && (
-          <div className="px-3 pb-2 text-red-600 text-[11px]">{error}</div>
+          <div className="px-3 pb-2 text-[11px]" style={{ color: 'var(--status-down)' }}>{error}</div>
         )}
 
         {/* Buttons */}
-        <div className="border-t border-[#808080] px-3 py-2 flex justify-end gap-2">
+        <div className="px-3 py-2 flex justify-end gap-2" style={{ borderTop: '1px solid var(--chrome-border)' }}>
           {!scanning && !done && (
             <button
               onClick={handleStart}
-              className="px-4 py-[2px] bg-[#d4d0c8] border border-[#808080] text-[11px]
-                shadow-[inset_1px_1px_#fff,inset_-1px_-1px_#808080] hover:bg-[#ece9d8]
-                active:shadow-[inset_1px_1px_#808080,inset_-1px_-1px_#fff]"
+              className="px-4 py-[2px] text-[11px]"
+              style={{
+                background: 'var(--chrome-bg)',
+                border: '1px solid var(--chrome-border)',
+                color: 'var(--text-primary)',
+              }}
             >
               Start
             </button>
           )}
           {scanning && (
-            <span className="text-[11px] text-gray-600 flex items-center gap-1 mr-2">
-              <span className="inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+            <span className="text-[11px] flex items-center gap-1 mr-2" style={{ color: 'var(--text-secondary)' }}>
+              <span className="inline-block w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--accent)' }} />
               Scanning…
             </span>
           )}
           <button
             onClick={onClose}
-            className="px-4 py-[2px] bg-[#d4d0c8] border border-[#808080] text-[11px]
-              shadow-[inset_1px_1px_#fff,inset_-1px_-1px_#808080] hover:bg-[#ece9d8]"
+            className="px-4 py-[2px] text-[11px]"
+            style={{
+              background: 'var(--chrome-bg)',
+              border: '1px solid var(--chrome-border)',
+              color: 'var(--text-primary)',
+            }}
           >
             {done ? 'Close' : 'Cancel'}
           </button>
@@ -222,7 +237,7 @@ export default function DiscoveryWizard({ onClose }: DiscoveryWizardProps) {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2">
-      <label className="w-36 text-right shrink-0 text-gray-700">{label}:</label>
+      <label className="w-36 text-right shrink-0" style={{ color: 'var(--text-secondary)' }}>{label}:</label>
       {children}
     </div>
   )
@@ -248,7 +263,7 @@ function CheckRow({
         disabled={disabled}
         className="w-3 h-3"
       />
-      <label className="text-gray-700 cursor-pointer" onClick={() => !disabled && onChange(!checked)}>
+      <label className="cursor-pointer" style={{ color: 'var(--text-secondary)' }} onClick={() => !disabled && onChange(!checked)}>
         {label}
       </label>
     </div>

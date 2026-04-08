@@ -6,7 +6,7 @@
 
 **Yet Another Dude (YAD)** is an open-source network monitoring tool inspired by MikroTik's The Dude — which was discontinued in March 2026.
 
-YAD gives you a visual topology map of your network, SNMP-based device monitoring, service health checks, outage history, and a full preferences system — all inside a single self-contained binary with a Windows XP–style UI that will feel immediately familiar to anyone who used The Dude.
+YAD gives you a visual topology map of your network, SNMP-based device monitoring, service health checks, outage history, and a full preferences system — all inside a single self-contained binary with a modern, responsive UI. Light theme by default, dark mode follows your system preference automatically.
 
 ---
 
@@ -18,7 +18,7 @@ YAD gives you a visual topology map of your network, SNMP-based device monitorin
 - **Service monitoring** — per-device service checks (ping, TCP, HTTP, SNMP, …)
 - **Outage history** — automatic outage log with start/end times
 - **Alert rules** — threshold-based alerts on any SNMP metric
-- **Full Preferences dialog** — 13 tabs matching The Dude's settings exactly
+- **Full Preferences dialog** — 13 tabs covering all monitoring, alerting and notification settings
 - **Single binary** — Go backend + embedded React frontend, zero dependencies
 - **Desktop client** — native Wails app that connects to a remote YAD server
 - **Optional API key auth** — secure with `--api-key` when exposing to untrusted networks
@@ -56,16 +56,15 @@ Requirements: Go 1.22+, Node 20+, npm.
 ```
 ./yad [flags]
 
-  --listen    string   address to listen on          (default ":8080")
+  --addr      string   address to listen on          (default ":8080")
   --db        string   SQLite database path           (default "yad.db")
   --api-key   string   require X-API-Key header       (default "" = no auth)
-  --log-level string   debug | info | warn | error    (default "info")
 ```
 
 ### Example with API key
 
 ```bash
-./yad --listen :8765 --db /var/lib/yad/yad.db --api-key "$(pwgen -s 32 1)"
+./yad --addr :8765 --db /var/lib/yad/yad.db --api-key "$(pwgen -s 32 1)"
 ```
 
 ---

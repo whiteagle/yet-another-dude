@@ -65,7 +65,7 @@ interface FieldProps {
 function Row({ label, children }: FieldProps) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', marginBottom: 5, gap: 6 }}>
-      <label style={{ width: 180, fontSize: 12, textAlign: 'right', flexShrink: 0, color: '#333' }}>
+      <label style={{ width: 180, fontSize: 12, textAlign: 'right', flexShrink: 0, color: 'var(--text-secondary)' }}>
         {label}:
       </label>
       <div style={{ flex: 1 }}>{children}</div>
@@ -87,8 +87,8 @@ function XPInput({ value, onChange, type = 'text', width, placeholder }: {
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       style={{
-        border: '1px solid #7f9db9', padding: '1px 4px', fontSize: 12,
-        background: '#fff', width: width ?? 180,
+        border: '1px solid var(--chrome-input-border)', padding: '1px 4px', fontSize: 12,
+        background: 'var(--bg-base)', color: 'var(--text-primary)', width: width ?? 180,
         fontFamily: 'Tahoma, Arial, sans-serif',
       }}
     />
@@ -109,8 +109,8 @@ function XPNumber({ value, onChange, min, max }: {
       max={max}
       onChange={(e) => onChange(parseInt(e.target.value) || 0)}
       style={{
-        border: '1px solid #7f9db9', padding: '1px 4px', fontSize: 12,
-        background: '#fff', width: 80,
+        border: '1px solid var(--chrome-input-border)', padding: '1px 4px', fontSize: 12,
+        background: 'var(--bg-base)', color: 'var(--text-primary)', width: 80,
         fontFamily: 'Tahoma, Arial, sans-serif',
       }}
     />
@@ -123,7 +123,7 @@ function XPCheck({ checked, onChange, label }: {
   label: string
 }) {
   return (
-    <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
+    <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer', color: 'var(--text-primary)' }}>
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
       {label}
     </label>
@@ -140,8 +140,8 @@ function XPSelect({ value, onChange, options }: {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       style={{
-        border: '1px solid #7f9db9', padding: '1px 2px', fontSize: 12,
-        background: '#fff', fontFamily: 'Tahoma, Arial, sans-serif',
+        border: '1px solid var(--chrome-input-border)', padding: '1px 2px', fontSize: 12,
+        background: 'var(--bg-base)', color: 'var(--text-primary)', fontFamily: 'Tahoma, Arial, sans-serif',
       }}
     >
       {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -152,7 +152,7 @@ function XPSelect({ value, onChange, options }: {
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      fontSize: 11, fontWeight: 'bold', color: '#003399', borderBottom: '1px solid #99aacc',
+      fontSize: 11, fontWeight: 'bold', color: 'var(--accent)', borderBottom: '1px solid var(--border)',
       marginBottom: 8, marginTop: 12, paddingBottom: 2,
     }}>
       {children}
@@ -218,30 +218,30 @@ export default function PrefsDialog({ onClose }: { onClose: () => void }) {
       background: 'rgba(0,0,0,0.3)',
     }}>
       <div style={{
-        background: '#ece9d8', border: '1px solid #808080',
+        background: 'var(--chrome-panel)', border: '1px solid var(--chrome-border)',
         boxShadow: '2px 2px 10px rgba(0,0,0,0.4)',
         width: 620, maxHeight: '90vh', display: 'flex', flexDirection: 'column',
-        fontFamily: 'Tahoma, Arial, sans-serif',
+        fontFamily: 'Tahoma, Arial, sans-serif', color: 'var(--text-primary)',
       }}>
         {/* Title bar */}
         <div style={{
-          background: 'linear-gradient(to right, #0058e6, #3c9aff)',
+          background: 'linear-gradient(to right, var(--titlebar-from), var(--titlebar-to))',
           padding: '3px 8px', display: 'flex', alignItems: 'center',
         }}>
           <span style={{ color: '#fff', fontSize: 11, fontWeight: 'bold', flex: 1 }}>Preferences</span>
           <button
             onClick={onClose}
             style={{
-              background: '#d4d0c8', border: '1px solid #808080', fontSize: 10,
-              padding: '0 4px', cursor: 'pointer', lineHeight: '14px',
+              background: 'var(--chrome-bg)', border: '1px solid var(--chrome-border)', fontSize: 10,
+              padding: '0 4px', cursor: 'pointer', lineHeight: '14px', color: 'var(--text-primary)',
             }}
           >✕</button>
         </div>
 
         {/* Tab bar */}
         <div style={{
-          display: 'flex', flexWrap: 'wrap', borderBottom: '1px solid #808080',
-          background: '#d4d0c8', paddingTop: 3, paddingLeft: 4, gap: '1px',
+          display: 'flex', flexWrap: 'wrap', borderBottom: '1px solid var(--chrome-border)',
+          background: 'var(--chrome-bg)', paddingTop: 3, paddingLeft: 4, gap: '1px',
         }}>
           {TABS.map((t, i) => (
             <div
@@ -249,12 +249,13 @@ export default function PrefsDialog({ onClose }: { onClose: () => void }) {
               onClick={() => setTab(i)}
               style={{
                 padding: '2px 10px', fontSize: 11, cursor: 'pointer',
-                background: tab === i ? '#ece9d8' : '#c0bdb4',
-                border: '1px solid #808080',
-                borderBottom: tab === i ? '1px solid #ece9d8' : '1px solid #808080',
+                background: tab === i ? 'var(--chrome-panel)' : 'var(--chrome-tab-inactive)',
+                border: '1px solid var(--chrome-border)',
+                borderBottom: tab === i ? '1px solid var(--chrome-panel)' : '1px solid var(--chrome-border)',
                 marginBottom: tab === i ? -1 : 0,
                 fontWeight: tab === i ? 'bold' : 'normal',
                 zIndex: tab === i ? 1 : 0, position: 'relative',
+                color: 'var(--text-primary)',
               }}
             >
               {t}
@@ -265,7 +266,7 @@ export default function PrefsDialog({ onClose }: { onClose: () => void }) {
         {/* Tab content */}
         <div style={{ height: 320, overflowY: 'auto', padding: '12px 16px' }}>
           {loading ? (
-            <div style={{ fontSize: 12, color: '#666', padding: 16 }}>Loading…</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: 16 }}>Loading…</div>
           ) : (
             <>
               {tab === 0 && <TabMisc s={s} set={set} />}
@@ -287,11 +288,11 @@ export default function PrefsDialog({ onClose }: { onClose: () => void }) {
 
         {/* Footer */}
         <div style={{
-          borderTop: '1px solid #808080', padding: '6px 12px',
+          borderTop: '1px solid var(--chrome-border)', padding: '6px 12px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          background: '#d4d0c8',
+          background: 'var(--chrome-bg)',
         }}>
-          <span style={{ fontSize: 11, color: (error || loadFailed) ? '#cc0000' : '#006600' }}>
+          <span style={{ fontSize: 11, color: (error || loadFailed) ? 'var(--status-down)' : 'var(--status-up)' }}>
             {error || (loadFailed ? 'Could not load settings — showing defaults.' : (saved ? 'Settings saved.' : ''))}
           </span>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -313,15 +314,15 @@ function TabMisc({ s, set }: { s: ServerSettings; set: SetFn }) {
       <SectionTitle>Application</SectionTitle>
       <Row label="Undo queue size">
         <XPNumber value={s.undo_queue_size} onChange={(v) => set('undo_queue_size', v)} min={1} max={256} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>actions</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>actions</span>
       </Row>
       <Row label="Database commit interval">
         <XPNumber value={s.db_commit_interval_sec} onChange={(v) => set('db_commit_interval_sec', v)} min={5} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>seconds</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>seconds</span>
       </Row>
       <Row label="Mac mapping refresh interval">
         <XPNumber value={s.mac_mapping_refresh_sec} onChange={(v) => set('mac_mapping_refresh_sec', v)} min={30} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>seconds</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>seconds</span>
       </Row>
 
       <SectionTitle>Behaviour</SectionTitle>
@@ -364,7 +365,7 @@ function TabGeneral({ s, set }: { s: ServerSettings; set: SetFn }) {
       <Row label="Secondary DNS server">
         <XPInput value={s.secondary_dns} onChange={(v) => set('secondary_dns', v)} />
       </Row>
-      <div style={{ fontSize: 11, color: '#666', marginTop: 8, marginLeft: 186 }}>
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8, marginLeft: 186 }}>
         Used for domain name resolving during discovery and service checks.
       </div>
     </div>
@@ -380,9 +381,9 @@ function TabSNMP({ s, set }: { s: ServerSettings; set: SetFn }) {
       </Row>
       <Row label="Connection timeout">
         <XPNumber value={s.snmp_timeout_sec} onChange={(v) => set('snmp_timeout_sec', v)} min={1} max={30} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>seconds</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>seconds</span>
       </Row>
-      <div style={{ fontSize: 11, color: '#666', marginTop: 12, marginLeft: 186 }}>
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 12, marginLeft: 186 }}>
         SNMP v1, v2c, and v3 profiles are configured per-device in the Devices panel.
       </div>
     </div>
@@ -395,15 +396,15 @@ function TabServicePolling({ s, set }: { s: ServerSettings; set: SetFn }) {
       <SectionTitle>Polling Intervals</SectionTitle>
       <Row label="Probe interval">
         <XPNumber value={s.probe_interval_sec} onChange={(v) => set('probe_interval_sec', v)} min={5} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>seconds (default: 30)</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>seconds (default: 30)</span>
       </Row>
       <Row label="Probe timeout">
         <XPNumber value={s.probe_timeout_sec} onChange={(v) => set('probe_timeout_sec', v)} min={1} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>seconds (default: 10)</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>seconds (default: 10)</span>
       </Row>
       <Row label="Probe down count">
         <XPNumber value={s.probe_down_count} onChange={(v) => set('probe_down_count', v)} min={1} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>failures before marking down (default: 5)</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>failures before marking down (default: 5)</span>
       </Row>
 
       <SectionTitle>Notifications</SectionTitle>
@@ -432,7 +433,7 @@ function TabServer({ s, set }: { s: ServerSettings; set: SetFn }) {
       </Row>
       <Row label="Allowed networks">
         <XPInput value={s.server_allowed_networks} onChange={(v) => set('server_allowed_networks', v)} width={240} />
-        <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
           Comma-separated CIDRs, e.g. 192.168.0.0/24, 10.0.0.0/8. Leave empty to allow all.
         </div>
       </Row>
@@ -455,17 +456,17 @@ function TabWebAccess({ s, set }: { s: ServerSettings; set: SetFn }) {
       </Row>
       <Row label="Allowed networks">
         <XPInput value={s.web_allowed_networks} onChange={(v) => set('web_allowed_networks', v)} width={240} />
-        <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
           Leave empty to allow all. Comma-separated CIDRs.
         </div>
       </Row>
       <Row label="Session timeout">
         <XPNumber value={s.web_session_timeout} onChange={(v) => set('web_session_timeout', v)} min={60} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>seconds</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>seconds</span>
       </Row>
       <Row label="Map refresh interval">
         <XPNumber value={s.web_refresh_interval} onChange={(v) => set('web_refresh_interval', v)} min={5} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>seconds</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>seconds</span>
       </Row>
     </div>
   )
@@ -480,7 +481,7 @@ function TabSyslog({ s, set }: { s: ServerSettings; set: SetFn }) {
       </Row>
       <Row label="Port">
         <XPNumber value={s.syslog_port} onChange={(v) => set('syslog_port', v)} min={1} max={65535} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>UDP (default: 514)</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>UDP (default: 514)</span>
       </Row>
 
       <SectionTitle>Log File</SectionTitle>
@@ -531,13 +532,13 @@ function TabSMTP({ s, set }: { s: ServerSettings; set: SetFn }) {
           value={s.smtp_password}
           onChange={(e) => set('smtp_password', e.target.value)}
           style={{
-            width: '100%', border: '1px solid #808080', padding: '1px 3px',
+            width: '100%', border: '1px solid var(--chrome-border)', padding: '1px 3px',
             fontSize: 11, fontFamily: 'Tahoma, Arial, sans-serif',
-            boxShadow: 'inset 1px 1px #fff',
+            background: 'var(--bg-base)', color: 'var(--text-primary)',
           }}
         />
       </Row>
-      <div style={{ fontSize: 11, color: '#666', marginTop: 8, marginLeft: 186 }}>
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8, marginLeft: 186 }}>
         Alert emails are sent when &ldquo;Send email&rdquo; is enabled in Service Polling
         and an alert rule has a notification email address set.
       </div>
@@ -573,9 +574,9 @@ function TabChartSettings({ s, set }: { s: ServerSettings; set: SetFn }) {
       <SectionTitle>Data Retention</SectionTitle>
       <Row label="Keep chart values for">
         <XPNumber value={s.chart_value_keep_days} onChange={(v) => set('chart_value_keep_days', v)} min={1} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>days</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>days</span>
       </Row>
-      <div style={{ fontSize: 11, color: '#666', marginTop: 8, marginLeft: 186 }}>
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8, marginLeft: 186 }}>
         Metric data older than this will be pruned from the database.
       </div>
     </div>
@@ -600,7 +601,7 @@ function TabReportPDF({ s, set }: { s: ServerSettings; set: SetFn }) {
       </Row>
       <Row label="Font size">
         <XPNumber value={s.report_font_size} onChange={(v) => set('report_font_size', v)} min={6} max={24} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>pt</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>pt</span>
       </Row>
     </div>
   )
@@ -612,15 +613,15 @@ function TabDiscover({ s, set }: { s: ServerSettings; set: SetFn }) {
       <SectionTitle>Map Layout After Discovery</SectionTitle>
       <Row label="Item width">
         <XPNumber value={s.discover_item_width} onChange={(v) => set('discover_item_width', v)} min={20} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>px</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>px</span>
       </Row>
       <Row label="Item height">
         <XPNumber value={s.discover_item_height} onChange={(v) => set('discover_item_height', v)} min={20} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>px</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>px</span>
       </Row>
       <Row label="Group size">
         <XPNumber value={s.discover_group_size} onChange={(v) => set('discover_group_size', v)} min={2} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>items per row/column cluster</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>items per row/column cluster</span>
       </Row>
     </div>
   )
@@ -632,11 +633,11 @@ function TabRouterOS({ s, set }: { s: ServerSettings; set: SetFn }) {
       <SectionTitle>RouterOS Connection</SectionTitle>
       <Row label="Connection timeout">
         <XPNumber value={s.routeros_timeout_sec} onChange={(v) => set('routeros_timeout_sec', v)} min={1} max={60} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>seconds</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>seconds</span>
       </Row>
       <Row label="Poll interval">
         <XPNumber value={s.routeros_interval_sec} onChange={(v) => set('routeros_interval_sec', v)} min={10} />
-        <span style={{ fontSize: 11, color: '#666', marginLeft: 6 }}>seconds (how often to query RouterOS API)</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>seconds (how often to query RouterOS API)</span>
       </Row>
     </div>
   )
@@ -653,12 +654,12 @@ function WinBtn({ children, onClick, disabled }: {
       disabled={disabled}
       style={{
         padding: '2px 14px', fontSize: 11,
-        background: disabled ? '#e0e0e0' : '#d4d0c8',
-        border: '1px solid #808080',
-        boxShadow: 'inset 1px 1px #fff, inset -1px -1px #808080',
+        background: disabled ? 'var(--bg-elevated)' : 'var(--chrome-bg)',
+        border: '1px solid var(--chrome-border)',
         cursor: disabled ? 'default' : 'pointer',
         fontFamily: 'Tahoma, Arial, sans-serif',
         opacity: disabled ? 0.7 : 1,
+        color: 'var(--text-primary)',
       }}
     >
       {children}

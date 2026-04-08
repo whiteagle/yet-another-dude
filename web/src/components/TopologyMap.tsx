@@ -28,10 +28,13 @@ interface TopologyMapProps {
 function DeviceTooltip({ device }: { device: Device }) {
   return (
     <div
-      className="absolute z-50 bg-white border border-gray-500 shadow-lg p-2 text-[11px] w-60 pointer-events-none leading-tight"
-      style={{ bottom: 'calc(100% + 4px)', left: '50%', transform: 'translateX(-50%)' }}
+      className="absolute z-50 shadow-lg p-2 text-[11px] w-60 pointer-events-none leading-tight"
+      style={{
+        bottom: 'calc(100% + 4px)', left: '50%', transform: 'translateX(-50%)',
+        background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--text-primary)',
+      }}
     >
-      <div className="font-bold text-gray-900 mb-1">
+      <div className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
         {device.name} ({device.type})
       </div>
       <div>IP: {device.ip}</div>
@@ -47,9 +50,9 @@ function DeviceTooltip({ device }: { device: Device }) {
         </div>
       )}
       {device.notes && (
-        <div className="text-gray-500 italic mt-1">Notes: {device.notes}</div>
+        <div className="italic mt-1" style={{ color: 'var(--text-muted)' }}>Notes: {device.notes}</div>
       )}
-      <div className="mt-1 border-t border-gray-200 pt-1 font-semibold">
+      <div className="mt-1 pt-1 font-semibold" style={{ borderTop: '1px solid var(--border-muted)' }}>
         Status: <span style={{ color: STATUS_COLORS[device.status] }}>{device.status}</span>
       </div>
     </div>
@@ -150,7 +153,7 @@ export default function TopologyMap({ devices, links = [], positions, onSave }: 
           animated: false,
           // Wireless links are thinner/dashed
           style: {
-            stroke: '#333',
+            stroke: 'var(--text-secondary)',
             strokeWidth: l.link_type === 'wireless' ? 1 : 2,
             strokeDasharray: l.link_type === 'wireless' ? '4 2' : undefined,
           },
@@ -161,10 +164,10 @@ export default function TopologyMap({ devices, links = [], positions, onSave }: 
               : l.interface_name || undefined,
           labelStyle: {
             fontSize: 9,
-            fill: '#333',
+            fill: 'var(--text-secondary)',
             fontFamily: 'Tahoma, Arial, sans-serif',
           },
-          labelBgStyle: { fill: 'rgba(255,255,255,0.8)', stroke: 'none' },
+          labelBgStyle: { fill: 'var(--bg-base)', stroke: 'none', fillOpacity: 0.8 },
         })),
     []
   )
@@ -215,25 +218,25 @@ export default function TopologyMap({ devices, links = [], positions, onSave }: 
         fitView
         minZoom={0.1}
         maxZoom={5}
-        style={{ background: '#f8f8f8' }}
+        style={{ background: 'var(--bg-base)' }}
         defaultEdgeOptions={{ type: 'default' }}
       >
         {/* Light grey grid — matches The Dude's map background */}
         <Background
           variant={BackgroundVariant.Lines}
           gap={20}
-          color="#d8d8d8"
+          color="var(--bg-elevated)"
           lineWidth={0.5}
         />
         <Controls
-          style={{ background: '#d4d0c8', border: '1px solid #808080' }}
+          style={{ background: 'var(--chrome-bg)', border: '1px solid var(--chrome-border)' }}
         />
         <MiniMap
           nodeColor={(n) => {
             const dev = devices.find((d) => d.id === n.id)
             return STATUS_COLORS[dev?.status ?? 'unknown']
           }}
-          style={{ background: '#f0f0ee', border: '1px solid #aaa' }}
+          style={{ background: 'var(--bg-highlight)', border: '1px solid var(--border)' }}
           maskColor="rgba(0,0,0,0.06)"
         />
       </ReactFlow>
