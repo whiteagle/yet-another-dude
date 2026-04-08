@@ -38,12 +38,20 @@ type EvaluateResult struct {
 }
 
 // Evaluate checks metrics against all applicable alert rules for a device.
+// It fetches the rules from the database internally.
+// Prefer EvaluateWithRules when the caller already holds the rule list.
 func (e *Engine) Evaluate(ctx context.Context, deviceID, deviceName string, metrics map[string]float64) (*EvaluateResult, error) {
 	rules, err := e.database.ListAlertRulesForDevice(ctx, deviceID)
 	if err != nil {
 		return nil, fmt.Errorf("list rules for device %s: %w", deviceID, err)
 	}
+	return e.EvaluateWithRules(ctx, deviceID, deviceName, metrics, rules)
+}
 
+// EvaluateWithRules checks metrics against the provided alert rules.
+// Use this variant when the caller already fetched the rule list to avoid a
+// redundant database round-trip.
+func (e *Engine) EvaluateWithRules(ctx context.Context, deviceID, deviceName string, metrics map[string]float64, rules []db.AlertRule) (*EvaluateResult, error) {
 	label := deviceName
 	if label == "" {
 		if len(deviceID) >= 8 {

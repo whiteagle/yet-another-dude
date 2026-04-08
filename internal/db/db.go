@@ -148,6 +148,10 @@ func (d *DB) Migrate() error {
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_alert_history_rule ON alert_history(rule_id, triggered_at)`,
 		`CREATE INDEX IF NOT EXISTS idx_alert_history_time ON alert_history(triggered_at DESC)`,
+		// Supports per-device alert history lookups (e.g. API: GET /devices/{id}/alerts)
+		`CREATE INDEX IF NOT EXISTS idx_alert_history_device ON alert_history(device_id, triggered_at DESC)`,
+		// Supports ResolveOutage() which filters by device_id + service_id + status='active'
+		`CREATE INDEX IF NOT EXISTS idx_outages_active ON outages(device_id, service_id, status)`,
 		`CREATE TABLE IF NOT EXISTS settings (
 			key TEXT PRIMARY KEY,
 			value TEXT NOT NULL

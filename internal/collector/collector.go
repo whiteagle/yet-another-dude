@@ -152,20 +152,23 @@ func (c *Collector) pollDevice(ctx context.Context, dev db.Device) {
 
 	// Evaluate alerts
 	if c.cfg.AlertEngine != nil {
-		evalResult, err := c.cfg.AlertEngine.Evaluate(ctx, dev.ID, dev.Name, result.Metrics)
+		// Load rules once and pass them into Evaluate so we avoid a second
+		// ListAlertRulesForDevice call inside the notifier path.
+		rules, err := c.cfg.DB.ListAlertRulesForDevice(ctx, dev.ID)
+		if err != nil {
+			slog.Error("failed to load alert rules", "device", dev.ID, "error", err)
+			return
+		}
+
+		evalResult, err := c.cfg.AlertEngine.EvaluateWithRules(ctx, dev.ID, dev.Name, result.Metrics, rules)
 		if err != nil {
 			slog.Error("alert evaluation failed", "device", dev.ID, "error", err)
 			return
 		}
 
-		// Send notifications for triggered alerts
+		// Send notifications for triggered alerts — reuse the already-loaded rule map.
 		if c.cfg.Notifier != nil && len(evalResult.Triggered) > 0 {
-			rules, err := c.cfg.DB.ListAlertRulesForDevice(ctx, dev.ID)
-			if err != nil {
-				slog.Error("failed to load alert rules for notification", "device", dev.ID, "error", err)
-				return
-			}
-			ruleMap := make(map[string]db.AlertRule)
+			ruleMap := make(map[string]db.AlertRule, len(rules))
 			for _, r := range rules {
 				ruleMap[r.ID] = r
 			}
